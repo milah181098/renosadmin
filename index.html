@@ -40,17 +40,17 @@
   .platform-block{margin-bottom:26px;}
   .platform-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
   .badge{background:var(--panel2);color:var(--muted);font-size:11px;padding:2px 8px;border-radius:10px;}
-  .price-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);}
-  .price-row:last-child{border-bottom:none;}
-  .price-label{font-size:13px;}
+  .price-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .price-label{font-size:13px;min-width:200px;}
   .price-label .cnt{color:var(--muted);font-size:11.5px;}
-  .price-input-wrap {display:flex;align-items:center;gap:6px;}
-  .price-input{width:110px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 9px;font-size:13px;}
-  .currency-select{background:var(--panel2);border:1px solid var(--accent);color:var(--text);border-radius:7px;padding:7px 12px;font-size:13px;font-weight:600;outline:none;}
+  .price-input-wrap {display:flex;align-items:center;gap:8px;}
+  .price-input{width:95px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 9px;font-size:13px;}
+  .price-input:focus{border-color:var(--accent2);outline:none;}
+  .currency-lbl-inline{font-size:11px;color:var(--muted);font-weight:600;margin-right:8px;}
   .totals{display:flex;gap:14px;margin:14px 0 20px;flex-wrap:wrap;}
-  .total-box{flex:1;min-width:140px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .total-box{flex:1;min-width:160px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
   .total-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-  .total-box .val{font-size:20px;font-weight:700;margin-top:4px;}
+  .total-box .val{font-size:18px;font-weight:700;margin-top:6px;line-height:1.4;}
   .pend{color:#fbbf24;} .pag{color:var(--ok);} .gen{color:var(--accent2);}
   .empty{color:var(--muted);font-size:13px;padding:20px;text-align:center;}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:9999;}
@@ -62,7 +62,7 @@
 <body>
 
 <h1>🌊 Organizador de Cuentas Streaming</h1>
-<div class="sub">Wave Play — pega tu listado, revisa, asigna precios y genera tablas + pagos a proveedores</div>
+<div class="sub">Wave Play — pega tu listado, revisa, asigna precios mixtos y genera tablas + pagos a proveedores</div>
 
 <div class="steps">
   <div class="step-pill" id="pill-1">1. Pegar</div>
@@ -71,6 +71,7 @@
   <div class="step-pill" id="pill-4">4. Tablas + Pagos</div>
 </div>
 
+<!-- STEP 1 -->
 <div class="card" id="step1">
   <h2>Paso 1 — Pega tu listado crudo</h2>
   <textarea id="rawInput" placeholder="Pega aquí el listado de cuentas (Plataforma, Correo, Clave, Proveedor, Fecha fin, Días restantes)..."></textarea>
@@ -80,6 +81,7 @@
   </div>
 </div>
 
+<!-- STEP 2 -->
 <div class="card" id="step2" style="display:none;">
   <h2>Paso 2 — Revisa y corrige (editable)</h2>
   <div id="previewTableWrap"></div>
@@ -90,15 +92,10 @@
   </div>
 </div>
 
+<!-- STEP 3 -->
 <div class="card" id="step3" style="display:none;">
-  <h2>Paso 3 — Precio por proveedor y Moneda</h2>
-  <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-    <span style="font-size: 13px; color: var(--text);">¿En qué moneda deseas calcular?</span>
-    <select id="currencySelect" class="currency-select" onchange="updateCurrency(this.value)">
-      <option value="USDT">USDT</option>
-      <option value="S/.">Soles Peruanos (S/.)</option>
-    </select>
-  </div>
+  <h2>Paso 3 — Precio por proveedor (Rellena la casilla correspondiente)</h2>
+  <div class="hint" style="margin-bottom: 12px;">Ingresa el monto en la columna de la moneda que use ese lote. La otra casilla se limpiará automáticamente.</div>
   <div id="pricingWrap"></div>
   <div class="row">
     <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
@@ -106,6 +103,7 @@
   </div>
 </div>
 
+<!-- STEP 4 -->
 <div class="card" id="step4" style="display:none;">
   <h2>Paso 4 — Tablas finales</h2>
   <div id="finalTablesWrap"></div>
@@ -114,9 +112,9 @@
 <div class="card" id="paymentsCard" style="display:none;">
   <h2>Desglose de pagos a proveedores</h2>
   <div class="totals">
-    <div class="total-box"><div class="lbl">Pendiente</div><div class="val pend" id="totPend">0.00 USDT</div></div>
-    <div class="total-box"><div class="lbl">Pagado</div><div class="val pag" id="totPaid">0.00 USDT</div></div>
-    <div class="total-box"><div class="lbl">General</div><div class="val gen" id="totGen">0.00 USDT</div></div>
+    <div class="total-box"><div class="lbl">Pendiente</div><div class="val pend" id="totPend"></div></div>
+    <div class="total-box"><div class="lbl">Pagado</div><div class="val pag" id="totPaid"></div></div>
+    <div class="total-box"><div class="lbl">General Total</div><div class="val gen" id="totGen"></div></div>
   </div>
   <div id="paymentsWrap"></div>
   <div class="row">
@@ -129,7 +127,6 @@
 <script>
 let accounts = []; 
 let groups = {};
-let currentCurrency = 'USDT';
 
 const EXCLUDED = ['TEMPORALES','HBO MAX','HBOMAX','HBO','PARAMOUNT','PARAMOUNT+'];
 const PLATFORM_PATTERNS = [
@@ -302,7 +299,9 @@ function goPricing(){
   groups = {};
   accounts.forEach(a=>{
     const k = groupKey(a);
-    if(!groups[k]) groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, paid:false, accountIds:[]};
+    if(!groups[k]) {
+      groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, currency:'USDT', paid:false, accountIds:[]};
+    }
     groups[k].count++;
     groups[k].accountIds.push(a.id);
   });
@@ -313,24 +312,41 @@ function goPricing(){
 function renderPricingList() {
   let html = '';
   Object.entries(groups).forEach(([k,g])=>{
+    const valUsdt = g.currency === 'USDT' ? (g.price || '') : '';
+    const valSoles = g.currency === 'S/.' ? (g.price || '') : '';
+    
     html += `<div class="price-row">
       <div class="price-label">${g.platform} — ${g.observation} <span class="cnt">(${g.count} cuenta${g.count>1?'s':''})</span></div>
       <div class="price-input-wrap">
-        <input type="number" class="price-input" min="0" step="0.01" value="${g.price || ''}" placeholder="Monto" data-key="${k}" onchange="updatePrice('${k}', this.value)">
-        <span class="currency-label" style="font-size:13px; font-weight:600; width:45px;">${currentCurrency}</span>
+        <input type="number" class="price-input" min="0" step="0.01" value="${valUsdt}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'USDT', this)">
+        <span class="currency-lbl-inline">USDT</span>
+        
+        <input type="number" class="price-input" min="0" step="0.01" value="${valSoles}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'S/.', this)">
+        <span class="currency-lbl-inline">S/.</span>
       </div>
     </div>`;
   });
   document.getElementById('pricingWrap').innerHTML = html || '<div class="empty">No hay grupos detectados</div>';
 }
 
-function updateCurrency(val) {
-  currentCurrency = val;
-  renderPricingList();
-}
+function updateGroupPrice(key, val, currency, el) {
+  const row = el.closest('.price-input-wrap');
+  const inputs = row.querySelectorAll('.price-input');
+  
+  if (!val.trim() || parseFloat(val) === 0) {
+    if (groups[key].currency === currency) {
+      groups[key].price = 0;
+    }
+    return;
+  }
 
-function updatePrice(key, val){
   groups[key].price = parseFloat(val) || 0;
+  groups[key].currency = currency;
+
+  // Limpiar la otra casilla automáticamente para evitar conflictos
+  inputs.forEach(input => {
+    if (input !== el) input.value = '';
+  });
 }
 
 function generarFinal(){
@@ -374,7 +390,6 @@ function generarFinal(){
   document.getElementById('paymentsCard').style.display = 'block';
 }
 
-// Sistema de copiado robusto con fallback para evitar bloqueos del navegador en local
 function copyCol(platform, field){
   const tables = document.querySelectorAll('table');
   let table = null;
@@ -417,13 +432,15 @@ function renderPayments(){
   </tr></thead><tbody>`;
   Object.entries(groups).forEach(([k,g])=>{
     const total = (g.price * g.count);
+    const symb = g.currency === 'S/.' ? 'S/.' : 'USDT';
+    
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
       <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
       <td>${g.observation}</td>
       <td>${g.platform}</td>
       <td>${g.count}</td>
-      <td>${g.price.toFixed(2)} ${currentCurrency}</td>
-      <td>${total.toFixed(2)} ${currentCurrency}</td>
+      <td>${g.currency === 'S/.' ? 'S/. ' : ''}${g.price.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
+      <td>${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
@@ -439,21 +456,28 @@ function togglePaid(key, checked){
 }
 
 function updateTotals(){
-  let pend=0, paid=0, gen=0;
+  let pendUsdt=0, paidUsdt=0, genUsdt=0;
+  let pendSoles=0, paidSoles=0, genSoles=0;
+
   Object.values(groups).forEach(g=>{
     const total = g.price * g.count;
-    gen += total;
-    if(g.paid) paid += total; else pend += total;
+    if(g.currency === 'S/.') {
+      genSoles += total;
+      if(g.paid) paidSoles += total; else pendSoles += total;
+    } else {
+      genUsdt += total;
+      if(g.paid) paidUsdt += total; else pendUsdt += total;
+    }
   });
-  document.getElementById('totPend').textContent = pend.toFixed(2) + ' ' + currentCurrency;
-  document.getElementById('totPaid').textContent = paid.toFixed(2) + ' ' + currentCurrency;
-  document.getElementById('totGen').textContent = gen.toFixed(2) + ' ' + currentCurrency;
+
+  document.getElementById('totPend').innerHTML = `<div>${pendUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#fca5a5">S/. ${pendSoles.toFixed(2)}</div>`;
+  document.getElementById('totPaid').innerHTML = `<div>${paidUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#a3e635">S/. ${paidSoles.toFixed(2)}</div>`;
+  document.getElementById('totGen').innerHTML = `<div>${genUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:var(--accent)">S/. ${genSoles.toFixed(2)}</div>`;
 }
 
 function reset(){
-  accounts = []; groups = {}; currentCurrency = 'USDT';
+  accounts = []; groups = {};
   document.getElementById('rawInput').value = '';
-  document.getElementById('currencySelect').value = 'USDT';
   document.getElementById('paymentsCard').style.display='none';
   goStep(1);
 }
