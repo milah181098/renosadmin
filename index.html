@@ -32,6 +32,8 @@
   td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
   tr.urgent td{background:var(--danger-bg);color:#fca5a5;}
   tr.paid td{background:var(--ok-bg);}
+  tr.account-paid td{opacity:0.4;text-decoration:line-through;border-color:rgba(39,52,74,0.5);}
+  tr.account-paid td:first-child{opacity:1;text-decoration:none;}
   td[contenteditable="true"]{outline:none;}
   td[contenteditable="true"]:focus{background:#0c1320;border-radius:4px;}
   .row-x{background:transparent;border:1px solid var(--border);color:var(--danger);width:24px;height:24px;border-radius:6px;padding:0;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;}
@@ -55,7 +57,7 @@
   .empty{color:var(--muted);font-size:13px;padding:20px;text-align:center;}
   .toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:9999;}
   .toast.show{opacity:1;transform:translateY(0);}
-  input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
+  input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
   .hint{font-size:11.5px;color:var(--muted);margin-top:8px;}
 </style>
 </head>
@@ -106,6 +108,7 @@
 <!-- STEP 4 -->
 <div class="card" id="step4" style="display:none;">
   <h2>Paso 4 — Tablas finales</h2>
+  <div class="hint" style="margin-bottom:12px;">Marca el checklist inicial (✓) si esa cuenta ya fue pagada individualmente para excluirla del cálculo del proveedor.</div>
   <div id="finalTablesWrap"></div>
 </div>
 
@@ -243,7 +246,8 @@ function organizar(){
         password: passwordText || '(no detectada)',
         dueDateStr: dueDateStr,
         days: days,
-        observation: observation
+        observation: observation,
+        renewedPaid: false // Control individual de pago
       });
     }
   }
@@ -343,7 +347,6 @@ function updateGroupPrice(key, val, currency, el) {
   groups[key].price = parseFloat(val) || 0;
   groups[key].currency = currency;
 
-  // Limpiar la otra casilla automáticamente para evitar conflictos
   inputs.forEach(input => {
     if (input !== el) input.value = '';
   });
@@ -368,11 +371,15 @@ function generarFinal(){
         <button class="btn-mini" onclick="copyCol('${platform}','observation')">Copiar observación</button>
       </div>
       <div style="overflow-x:auto"><table data-platform="${platform}"><thead><tr>
-        <th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Observación</th>
+        <th style="width:40px;">✓</th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Observación</th>
       </tr></thead><tbody>`;
     list.forEach(a=>{
       const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
-      tablesHtml += `<tr class="${urgent}">
+      const isChecked = a.renewedPaid ? 'checked' : '';
+      const rowClass = [urgent, a.renewedPaid ? 'account-paid' : ''].join(' ').trim();
+      
+      tablesHtml += `<tr class="${rowClass}" data-acc-id="${a.id}">
+        <td><input type="checkbox" ${isChecked} onchange="toggleAccountPaid('${a.id}', this.checked)" title="Marcar si ya se pagó la renovación de esta cuenta"></td>
         <td data-col="platform">${a.platform}</td>
         <td data-col="email">${a.email}</td>
         <td data-col="password">${a.password}</td>
@@ -390,6 +397,18 @@ function generarFinal(){
   document.getElementById('paymentsCard').style.display = 'block';
 }
 
+function toggleAccountPaid(id, checked) {
+  const acc = accounts.find(a => a.id === id);
+  if (acc) {
+    acc.renewedPaid = checked;
+    const tr = document.querySelector(`tr[data-acc-id="${id}"]`);
+    if (tr) tr.classList.toggle('account-paid', checked);
+    
+    // Forzar el recálculo y renderizado dinámico de pagos
+    renderPayments();
+  }
+}
+
 function copyCol(platform, field){
   const tables = document.querySelectorAll('table');
   let table = null;
@@ -401,16 +420,20 @@ function copyCol(platform, field){
   const cells = table.querySelectorAll(`td[data-col="${field}"]`);
   const text = [...cells].map(c=>c.textContent.trim()).join('\n');
   
+  executeCopy(text, '¡Copiado al portapapeles! ✓');
+}
+
+function executeCopy(text, successMessage) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text)
-      .then(() => showToast('¡Copiado al portapapeles! ✓'))
-      .catch(() => fallbackCopy(text));
+      .then(() => showToast(successMessage))
+      .catch(() => fallbackCopy(text, successMessage));
   } else {
-    fallbackCopy(text);
+    fallbackCopy(text, successMessage);
   }
 }
 
-function fallbackCopy(text) {
+function fallbackCopy(text, successMessage) {
   const ta = document.createElement('textarea');
   ta.value = text;
   ta.style.position = 'fixed'; 
@@ -419,28 +442,58 @@ function fallbackCopy(text) {
   ta.select();
   try {
     document.execCommand('copy');
-    showToast('¡Copiado al portapapeles! ✓');
+    showToast(successMessage || '¡Copiado al portapapeles! ✓');
   } catch(e) {
     showToast('Error al copiar');
   }
   document.body.removeChild(ta);
 }
 
+function copyProviderMessage(key) {
+  const g = groups[key];
+  if (!g) return;
+  
+  // Filtrar correos omitiendo los que ya están marcados como pagados
+  const emails = g.accountIds.map(id => accounts.find(a => a.id === id))
+                            .filter(acc => acc && !acc.renewedPaid)
+                            .map(acc => acc.email);
+
+  if (emails.length === 0) {
+    showToast('No hay cuentas pendientes en este bloque ✓');
+    return;
+  }
+
+  let messageText = '';
+  if (emails.length === 1) {
+    messageText = `Hola, renovación de ${emails[0]}`;
+  } else {
+    messageText = `Hola, renovación de:\n${emails.join('\n')}`;
+  }
+
+  executeCopy(messageText, '¡Mensaje de renovación copiado! ✓');
+}
+
 function renderPayments(){
   let html = `<div style="overflow-x:auto"><table><thead><tr>
-    <th>Pagado</th><th>Proveedor</th><th>Plataforma</th><th>Cuentas</th><th>Precio/u</th><th>Total</th>
+    <th>Pagado</th><th>Proveedor</th><th>Plataforma</th><th>Cuentas</th><th>Precio/u</th><th>Total</th><th>Acción</th>
   </tr></thead><tbody>`;
   Object.entries(groups).forEach(([k,g])=>{
-    const total = (g.price * g.count);
-    const symb = g.currency === 'S/.' ? 'S/.' : 'USDT';
+    // Contar de manera dinámica solo las cuentas que NO estén marcadas como ya pagadas
+    const dynamicCount = g.accountIds.filter(id => {
+      const a = accounts.find(acc => acc.id === id);
+      return a ? !a.renewedPaid : false;
+    }).length;
+
+    const total = (g.price * dynamicCount);
     
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
       <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
       <td>${g.observation}</td>
       <td>${g.platform}</td>
-      <td>${g.count}</td>
+      <td>${dynamicCount}</td>
       <td>${g.currency === 'S/.' ? 'S/. ' : ''}${g.price.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
       <td>${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
+      <td><button class="btn-mini" onclick="copyProviderMessage('${k}')">📋 Copiar Mensaje</button></td>
     </tr>`;
   });
   html += `</tbody></table></div>`;
@@ -460,7 +513,13 @@ function updateTotals(){
   let pendSoles=0, paidSoles=0, genSoles=0;
 
   Object.values(groups).forEach(g=>{
-    const total = g.price * g.count;
+    // Calcular dinámicamente el conteo restando los checklist del paso 4
+    const dynamicCount = g.accountIds.filter(id => {
+      const a = accounts.find(acc => acc.id === id);
+      return a ? !a.renewedPaid : false;
+    }).length;
+
+    const total = g.price * dynamicCount;
     if(g.currency === 'S/.') {
       genSoles += total;
       if(g.paid) paidSoles += total; else pendSoles += total;
