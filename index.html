@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root{
+    --bg:#0f1521; --panel:#161f30; --panel2:#1d2940; --accent:#2dd4bf; --accent2:#38bdf8;
+    --text:#e6edf5; --muted:#8694ab; --danger:#ef4444; --danger-bg:#3b1620; --ok:#22c55e; --ok-bg:#10301f;
+    --border:#27344a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:24px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  h2{font-size:15px;color:var(--accent);margin:0 0 12px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+  .step-pill{padding:5px 12px;border-radius:20px;font-size:12px;background:var(--panel);color:var(--muted);border:1px solid var(--border);}
+  .step-pill.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#031018;font-weight:600;border:none;}
+  .step-pill.done{color:var(--accent);border-color:var(--accent);}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px;}
+  textarea{width:100%;min-height:220px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:monospace;font-size:13px;resize:vertical;}
+  button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;transition:.15s;}
+  .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#031018;}
+  .btn-primary:hover{filter:brightness(1.1);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-ghost:hover{color:var(--text);border-color:var(--accent);}
+  .btn-mini{padding:4px 9px;font-size:11px;background:var(--panel2);color:var(--accent2);border:1px solid var(--border);border-radius:6px;}
+  .btn-mini:hover{border-color:var(--accent2);}
+  .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;padding:8px 10px;color:var(--accent2);border-bottom:1px solid var(--border);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
+  td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr.urgent td{background:var(--danger-bg);color:#fca5a5;}
+  tr.paid td{background:var(--ok-bg);}
+  td[contenteditable="true"]{outline:none;}
+  td[contenteditable="true"]:focus{background:#0c1320;border-radius:4px;}
+  .row-x{background:transparent;border:1px solid var(--border);color:var(--danger);width:24px;height:24px;border-radius:6px;padding:0;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .row-x:hover{background:var(--danger-bg);border-color:var(--danger);}
+  .col-actions{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;}
+  .platform-block{margin-bottom:26px;}
+  .platform-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .badge{background:var(--panel2);color:var(--muted);font-size:11px;padding:2px 8px;border-radius:10px;}
+  .price-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .price-row:last-child{border-bottom:none;}
+  .price-label{font-size:13px;}
+  .price-label .cnt{color:var(--muted);font-size:11.5px;}
+  .price-input-wrap {display:flex;align-items:center;gap:6px;}
+  .price-input{width:110px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 9px;font-size:13px;}
+  .currency-select{background:var(--panel2);border:1px solid var(--accent);color:var(--text);border-radius:7px;padding:7px 12px;font-size:13px;font-weight:600;outline:none;}
+  .totals{display:flex;gap:14px;margin:14px 0 20px;flex-wrap:wrap;}
+  .total-box{flex:1;min-width:140px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .total-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+  .total-box .val{font-size:20px;font-weight:700;margin-top:4px;}
+  .pend{color:#fbbf24;} .pag{color:var(--ok);} .gen{color:var(--accent2);}
+  .empty{color:var(--muted);font-size:13px;padding:20px;text-align:center;}
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:9999;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<h1>🌊 Organizador de Cuentas Streaming</h1>
+<div class="sub">Wave Play — pega tu listado, revisa, asigna precios y genera tablas + pagos a proveedores</div>
+
+<div class="steps">
+  <div class="step-pill" id="pill-1">1. Pegar</div>
+  <div class="step-pill" id="pill-2">2. Revisar</div>
+  <div class="step-pill" id="pill-3">3. Precios</div>
+  <div class="step-pill" id="pill-4">4. Tablas + Pagos</div>
+</div>
+
+<div class="card" id="step1">
+  <h2>Paso 1 — Pega tu listado crudo</h2>
+  <textarea id="rawInput" placeholder="Pega aquí el listado de cuentas (Plataforma, Correo, Clave, Proveedor, Fecha fin, Días restantes)..."></textarea>
+  <div class="hint">Se excluyen automáticamente: TEMPORALES, HBO MAX y PARAMOUNT. Los días restantes se recalculan según la fecha de hoy si se provee la fecha final.</div>
+  <div class="row">
+    <button class="btn-primary" onclick="organizar()">Organizar</button>
+  </div>
+</div>
+
+<div class="card" id="step2" style="display:none;">
+  <h2>Paso 2 — Revisa y corrige (editable)</h2>
+  <div id="previewTableWrap"></div>
+  <div class="hint">Haz clic en cualquier celda para corregirla. Usa la × para quitar una cuenta completa.</div>
+  <div class="row">
+    <button class="btn-ghost" onclick="goStep(1)">← Volver</button>
+    <button class="btn-primary" onclick="goPricing()">Continuar a precios →</button>
+  </div>
+</div>
+
+<div class="card" id="step3" style="display:none;">
+  <h2>Paso 3 — Precio por proveedor y Moneda</h2>
+  <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+    <span style="font-size: 13px; color: var(--text);">¿En qué moneda deseas calcular?</span>
+    <select id="currencySelect" class="currency-select" onchange="updateCurrency(this.value)">
+      <option value="USDT">USDT</option>
+      <option value="S/.">Soles Peruanos (S/.)</option>
+    </select>
+  </div>
+  <div id="pricingWrap"></div>
+  <div class="row">
+    <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
+    <button class="btn-primary" onclick="generarFinal()">Generar tablas →</button>
+  </div>
+</div>
+
+<div class="card" id="step4" style="display:none;">
+  <h2>Paso 4 — Tablas finales</h2>
+  <div id="finalTablesWrap"></div>
+</div>
+
+<div class="card" id="paymentsCard" style="display:none;">
+  <h2>Desglose de pagos a proveedores</h2>
+  <div class="totals">
+    <div class="total-box"><div class="lbl">Pendiente</div><div class="val pend" id="totPend">0.00 USDT</div></div>
+    <div class="total-box"><div class="lbl">Pagado</div><div class="val pag" id="totPaid">0.00 USDT</div></div>
+    <div class="total-box"><div class="lbl">General</div><div class="val gen" id="totGen">0.00 USDT</div></div>
+  </div>
+  <div id="paymentsWrap"></div>
+  <div class="row">
+    <button class="btn-ghost" onclick="reset()">↺ Empezar de nuevo</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let accounts = []; 
+let groups = {};
+let currentCurrency = 'USDT';
+
+const EXCLUDED = ['TEMPORALES','HBO MAX','HBOMAX','HBO','PARAMOUNT','PARAMOUNT+'];
+const PLATFORM_PATTERNS = [
+  {name:'Prime Video', re:/prime\s*video|amazon\s*prime/i},
+  {name:'Disney+', re:/disney\s*\+|disney\s*plus|\bdisney\b/i},
+  {name:'Star+', re:/star\s*\+|star\s*plus/i},
+  {name:'DGO', re:/\bdgo|directv\s*go/i},
+  {name:'YouTube Premium', re:/youtube\s*premium|youtube\s*prem/i},
+  {name:'Crunchyroll', re:/crunchyroll/i},
+  {name:'ViX', re:/\bvix/i},
+  {name:'Apple TV+', re:/apple\s*tv/i},
+  {name:'Spotify', re:/spotify/i},
+  {name:'Deezer', re:/deezer/i},
+  {name:'Plex', re:/\bplex/i},
+  {name:'Netflix', re:/netflix/i},
+  {name:'HBO Max', re:/hbo\s*max|\bmax\b/i},
+  {name:'Paramount+', re:/paramount/i},
+  {name:'Temporales', re:/temporal(es)?/i},
+];
+
+const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+const DATE_RE = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function setPill(n){
+  for(let i=1;i<=4;i++){
+    const p = document.getElementById('pill-'+i);
+    p.classList.remove('active','done');
+    if(i<n) p.classList.add('done');
+    if(i===n) p.classList.add('active');
+  }
+}
+
+function goStep(n){
+  for(let i=1;i<=4;i++){
+    document.getElementById('step'+i).style.display = (i===n)?'block':'none';
+  }
+  document.getElementById('paymentsCard').style.display='none';
+  setPill(n);
+}
+
+function canonicalizePlatform(text){
+  if(!text) return null;
+  for(const p of PLATFORM_PATTERNS){
+    if(p.re.test(text)) return p.name;
+  }
+  return null;
+}
+
+function isExcluded(name){
+  if(!name) return false;
+  return EXCLUDED.some(ex => ex.toLowerCase() === name.trim().toLowerCase());
+}
+
+function organizar(){
+  const raw = document.getElementById('rawInput').value;
+  if(!raw.trim()){ showToast('Pega un listado primero'); return; }
+
+  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  accounts = [];
+  let idx = 0;
+
+  for(let i = 0; i < lines.length; i++){
+    if(EMAIL_RE.test(lines[i])){
+      const emailText = lines[i];
+      const platformRaw = i > 0 ? lines[i-1] : '';
+      const passwordText = (i + 1) < lines.length ? lines[i+1] : '';
+      const providerRaw = (i + 2) < lines.length ? lines[i+2] : '';
+
+      let platformName = canonicalizePlatform(platformRaw);
+      if(!platformName) platformName = 'Sin plataforma';
+
+      if(isExcluded(platformName) || isExcluded(platformRaw)) continue;
+
+      let observation = '(sin obs.)';
+      if(providerRaw){
+        const firstWord = providerRaw.split(/\s+/)[0];
+        if(firstWord) observation = firstWord;
+      }
+
+      let dueDateStr = '—';
+      let days = null;
+      let dateMatch = null;
+
+      for(let j = i+3; j <= i+4 && j < lines.length; j++){
+        if(DATE_RE.test(lines[j])){
+          dateMatch = lines[j].match(DATE_RE);
+          break;
+        }
+      }
+
+      if(dateMatch){
+        let d=parseInt(dateMatch[1]), mo=parseInt(dateMatch[2]), y=parseInt(dateMatch[3]);
+        if(y<100) y+=2000;
+        let dueDate = new Date(y, mo-1, d);
+        const today = new Date();
+        if((dueDate-today)/86400000 < -180) dueDate = new Date(y+1, mo-1, d);
+        const t2 = new Date(); t2.setHours(0,0,0,0);
+        const d2 = new Date(dueDate); d2.setHours(0,0,0,0);
+        days = Math.round((d2-t2)/86400000);
+        dueDateStr = dueDate.toLocaleDateString('es-PE');
+      }
+
+      accounts.push({
+        id: 'acc' + (idx++),
+        platform: platformName,
+        email: emailText,
+        password: passwordText || '(no detectada)',
+        dueDateStr: dueDateStr,
+        days: days,
+        observation: observation
+      });
+    }
+  }
+
+  if(accounts.length===0){ showToast('Todo fue excluido o no se pudo procesar'); return; }
+  renderPreview();
+  goStep(2);
+}
+
+function removeRow(id){
+  accounts = accounts.filter(a=>a.id!==id);
+  renderPreview();
+  showToast('Cuenta quitada');
+}
+
+function renderPreview(){
+  let html = `<div style="overflow-x:auto"><table><thead><tr>
+    <th></th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Observación</th>
+  </tr></thead><tbody>`;
+  accounts.forEach(a=>{
+    const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
+    html += `<tr class="${urgent}" data-id="${a.id}">
+      <td><button class="row-x" onclick="removeRow('${a.id}')" title="Quitar esta cuenta">×</button></td>
+      <td contenteditable="true" data-field="platform">${a.platform}</td>
+      <td contenteditable="true" data-field="email">${a.email}</td>
+      <td contenteditable="true" data-field="password">${a.password}</td>
+      <td contenteditable="true" data-field="dueDateStr">${a.dueDateStr}</td>
+      <td contenteditable="true" data-field="days">${a.days===null?'—':a.days}</td>
+      <td contenteditable="true" data-field="observation">${a.observation}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById('previewTableWrap').innerHTML = html;
+
+  document.querySelectorAll('#previewTableWrap td[contenteditable]').forEach(td=>{
+    td.addEventListener('blur', ()=>{
+      const tr = td.closest('tr');
+      const id = tr.dataset.id;
+      const field = td.dataset.field;
+      const acc = accounts.find(a=>a.id===id);
+      if(!acc) return;
+      let val = td.textContent.trim();
+      if(field==='days') val = val==='—' ? null : parseInt(val);
+      acc[field] = val;
+      tr.classList.toggle('urgent', acc.days!==null && acc.days<=1);
+    });
+  });
+}
+
+function groupKey(a){ return a.platform + '||' + a.observation; }
+
+function goPricing(){
+  groups = {};
+  accounts.forEach(a=>{
+    const k = groupKey(a);
+    if(!groups[k]) groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, paid:false, accountIds:[]};
+    groups[k].count++;
+    groups[k].accountIds.push(a.id);
+  });
+  renderPricingList();
+  goStep(3);
+}
+
+function renderPricingList() {
+  let html = '';
+  Object.entries(groups).forEach(([k,g])=>{
+    html += `<div class="price-row">
+      <div class="price-label">${g.platform} — ${g.observation} <span class="cnt">(${g.count} cuenta${g.count>1?'s':''})</span></div>
+      <div class="price-input-wrap">
+        <input type="number" class="price-input" min="0" step="0.01" value="${g.price || ''}" placeholder="Monto" data-key="${k}" onchange="updatePrice('${k}', this.value)">
+        <span class="currency-label" style="font-size:13px; font-weight:600; width:45px;">${currentCurrency}</span>
+      </div>
+    </div>`;
+  });
+  document.getElementById('pricingWrap').innerHTML = html || '<div class="empty">No hay grupos detectados</div>';
+}
+
+function updateCurrency(val) {
+  currentCurrency = val;
+  renderPricingList();
+}
+
+function updatePrice(key, val){
+  groups[key].price = parseFloat(val) || 0;
+}
+
+function generarFinal(){
+  const byPlatform = {};
+  accounts.forEach(a=>{
+    if(!byPlatform[a.platform]) byPlatform[a.platform] = [];
+    byPlatform[a.platform].push(a);
+  });
+
+  let tablesHtml = '';
+  Object.entries(byPlatform).forEach(([platform, list])=>{
+    tablesHtml += `<div class="platform-block">
+      <div class="platform-title">${platform} <span class="badge">${list.length} cuenta${list.length>1?'s':''}</span></div>
+      <div class="col-actions">
+        <button class="btn-mini" onclick="copyCol('${platform}','platform')">Copiar plataformas</button>
+        <button class="btn-mini" onclick="copyCol('${platform}','email')">Copiar correos</button>
+        <button class="btn-mini" onclick="copyCol('${platform}','password')">Copiar claves</button>
+        <button class="btn-mini" onclick="copyCol('${platform}','days')">Copiar días</button>
+        <button class="btn-mini" onclick="copyCol('${platform}','observation')">Copiar observación</button>
+      </div>
+      <div style="overflow-x:auto"><table data-platform="${platform}"><thead><tr>
+        <th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Observación</th>
+      </tr></thead><tbody>`;
+    list.forEach(a=>{
+      const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
+      tablesHtml += `<tr class="${urgent}">
+        <td data-col="platform">${a.platform}</td>
+        <td data-col="email">${a.email}</td>
+        <td data-col="password">${a.password}</td>
+        <td data-col="dueDateStr">${a.dueDateStr}</td>
+        <td data-col="days">${a.days===null?'—':a.days}</td>
+        <td data-col="observation">${a.observation}</td>
+      </tr>`;
+    });
+    tablesHtml += `</tbody></table></div></div>`;
+  });
+  document.getElementById('finalTablesWrap').innerHTML = tablesHtml || '<div class="empty">Sin datos</div>';
+  goStep(4);
+
+  renderPayments();
+  document.getElementById('paymentsCard').style.display = 'block';
+}
+
+// Sistema de copiado robusto con fallback para evitar bloqueos del navegador en local
+function copyCol(platform, field){
+  const tables = document.querySelectorAll('table');
+  let table = null;
+  for(const t of tables) {
+    if(t.dataset.platform === platform) { table = t; break; }
+  }
+  if(!table) return;
+  
+  const cells = table.querySelectorAll(`td[data-col="${field}"]`);
+  const text = [...cells].map(c=>c.textContent.trim()).join('\n');
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('¡Copiado al portapapeles! ✓'))
+      .catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed'; 
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('¡Copiado al portapapeles! ✓');
+  } catch(e) {
+    showToast('Error al copiar');
+  }
+  document.body.removeChild(ta);
+}
+
+function renderPayments(){
+  let html = `<div style="overflow-x:auto"><table><thead><tr>
+    <th>Pagado</th><th>Proveedor</th><th>Plataforma</th><th>Cuentas</th><th>Precio/u</th><th>Total</th>
+  </tr></thead><tbody>`;
+  Object.entries(groups).forEach(([k,g])=>{
+    const total = (g.price * g.count);
+    html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
+      <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
+      <td>${g.observation}</td>
+      <td>${g.platform}</td>
+      <td>${g.count}</td>
+      <td>${g.price.toFixed(2)} ${currentCurrency}</td>
+      <td>${total.toFixed(2)} ${currentCurrency}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById('paymentsWrap').innerHTML = html;
+  updateTotals();
+}
+
+function togglePaid(key, checked){
+  groups[key].paid = checked;
+  const tr = document.querySelector(`tr[data-key="${CSS.escape(key)}"]`);
+  if(tr) tr.classList.toggle('paid', checked);
+  updateTotals();
+}
+
+function updateTotals(){
+  let pend=0, paid=0, gen=0;
+  Object.values(groups).forEach(g=>{
+    const total = g.price * g.count;
+    gen += total;
+    if(g.paid) paid += total; else pend += total;
+  });
+  document.getElementById('totPend').textContent = pend.toFixed(2) + ' ' + currentCurrency;
+  document.getElementById('totPaid').textContent = paid.toFixed(2) + ' ' + currentCurrency;
+  document.getElementById('totGen').textContent = gen.toFixed(2) + ' ' + currentCurrency;
+}
+
+function reset(){
+  accounts = []; groups = {}; currentCurrency = 'USDT';
+  document.getElementById('rawInput').value = '';
+  document.getElementById('currencySelect').value = 'USDT';
+  document.getElementById('paymentsCard').style.display='none';
+  goStep(1);
+}
+
+goStep(1);
+</script>
+</body>
+</html>
