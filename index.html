@@ -760,7 +760,6 @@ function canonicalizePlatform(text){
 
 function organizar(){
   const raw = document.getElementById('rawInput').value;
-  if(!raw.trim()){ showToast('Pega un listado primero'); return; }
 
   const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
   accounts = [];
@@ -818,7 +817,9 @@ function organizar(){
     }
   }
 
-  if(accounts.length===0){ showToast('No se detectaron correos válidos.'); return; }
+  if(accounts.length===0){
+    showToast(raw.trim() ? 'No se detectaron correos válidos, puedes continuar igual.' : 'Sin cuentas nuevas — puedes continuar solo con stock adicional.');
+  }
   renderPreview();
   goStep(2);
 }
@@ -948,10 +949,10 @@ function renderCustomRows(){
     html += `<div class="price-row provider-price-row" data-provider-key="custom-${i}">
     <div class="price-row-top">
       <div class="price-input-wrap" style="flex:1;">
-        <input type="text" class="price-input" style="width:100%;" value="${row.platform}" placeholder="Nombre de Plataforma Extra ${i+1}" oninput="customRows[i].platform = this.value">
+        <input type="text" class="price-input" style="width:100%;" value="${row.platform}" placeholder="Nombre de Plataforma Extra ${i+1}" oninput="customRows[${i}].platform = this.value">
       </div>
       <div class="price-input-wrap">
-        <input type="number" class="price-input" style="width:70px;" min="0" value="${row.count || ''}" placeholder="Cant." oninput="customRows[i].count = parseInt(this.value)||0">
+        <input type="number" class="price-input" style="width:70px;" min="0" value="${row.count || ''}" placeholder="Cant." oninput="customRows[${i}].count = parseInt(this.value)||0">
         <span class="currency-lbl-inline">und</span>
         <input type="number" class="price-input" id="cRowUsdt-${i}" min="0" step="0.01" value="${(row.currency==='USDT'&&(row.priceSet||row.price))?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'USDT')">
         <span class="currency-lbl-inline">USDT</span>
