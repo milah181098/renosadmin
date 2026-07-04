@@ -2,69 +2,418 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organizador de Renovaciones y Stock del Día · Wave Play</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0f1521; --panel:#161f30; --panel2:#1d2940; --accent:#2dd4bf; --accent2:#38bdf8;
-    --text:#e6edf5; --muted:#8694ab; --danger:#ef4444; --danger-bg:#3b1620; --ok:#22c55e; --ok-bg:#10301f;
-    --border:#27344a;
+    /* Base surfaces */
+    --bg:#08090f;
+    --bg-radial-1: rgba(232,25,123,0.14);
+    --bg-radial-2: rgba(29,219,139,0.08);
+    --panel:#11121b;
+    --panel2:#171825;
+    --panel3:#1d1f2f;
+    --border:#262838;
+    --border-soft:rgba(255,255,255,0.06);
+
+    /* Brand (Wave Play signature — magenta + green, marca oficial) */
+    --brand:#e8197b;
+    --brand-2:#ff5fae;
+    --brand-grad: linear-gradient(120deg, #ff4fa3 0%, #e8197b 60%, #b8115f 100%);
+
+    /* Text */
+    --text:#f2f3fb;
+    --muted:#8b8fa3;
+    --faint:#565a70;
+
+    /* Status */
+    --danger:#ff4d6d;
+    --danger-bg:rgba(255,77,109,0.10);
+    --ok:#1ddb8b;
+    --ok-bg:rgba(29,219,139,0.10);
+    --warn:#ffb648;
+    --warn-bg:rgba(255,182,72,0.10);
+
+    --radius:16px;
+    --radius-sm:10px;
+    --font-display:'Space Grotesk', system-ui, sans-serif;
+    --font-body:'Inter', system-ui, sans-serif;
+    --font-mono:'JetBrains Mono', ui-monospace, monospace;
   }
+
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;padding:24px;}
-  h1{font-size:20px;margin:0 0 4px;}
-  h2{font-size:15px;color:var(--accent);margin:0 0 12px;}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
-  .steps{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
-  .step-pill{padding:5px 12px;border-radius:20px;font-size:12px;background:var(--panel);color:var(--muted);border:1px solid var(--border);}
-  .step-pill.active{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#031018;font-weight:600;border:none;}
-  .step-pill.done{color:var(--accent);border-color:var(--accent);}
-  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:18px;}
-  textarea{width:100%;min-height:220px;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:monospace;font-size:13px;resize:vertical;}
-  button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;transition:.15s;}
-  .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#031018;}
-  .btn-primary:hover{filter:brightness(1.1);}
-  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
-  .btn-ghost:hover{color:var(--text);border-color:var(--accent);}
-  .btn-mini{padding:4px 9px;font-size:11px;background:var(--panel2);color:var(--accent2);border:1px solid var(--border);border-radius:6px;}
-  .btn-mini:hover{border-color:var(--accent2);}
-  .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+  ::selection{background:var(--brand); color:#08090f;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(900px 480px at 12% -10%, var(--bg-radial-1), transparent 60%),
+      radial-gradient(700px 420px at 100% 0%, var(--bg-radial-2), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    padding:32px 20px 80px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .app-shell{
+    max-width:1180px;
+    margin:0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  .app-header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:8px;
+  }
+  .signal-mark{
+    display:flex;
+    align-items:flex-end;
+    gap:3px;
+    height:30px;
+    flex-shrink:0;
+  }
+  .signal-mark span{
+    width:5px;
+    border-radius:3px;
+    background:var(--brand-grad);
+    animation:pulseBar 1.6s ease-in-out infinite;
+  }
+  .signal-mark span:nth-child(1){height:10px; animation-delay:0s;}
+  .signal-mark span:nth-child(2){height:20px; animation-delay:.15s;}
+  .signal-mark span:nth-child(3){height:30px; animation-delay:.3s;}
+  .signal-mark span:nth-child(4){height:16px; animation-delay:.45s;}
+  .signal-mark span:nth-child(5){height:8px; animation-delay:.6s;}
+  @keyframes pulseBar{
+    0%,100%{opacity:.45; transform:scaleY(.7);}
+    50%{opacity:1; transform:scaleY(1);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .signal-mark span{animation:none; opacity:.9;}
+  }
+
+  h1{
+    font-family:var(--font-display);
+    font-size:24px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  h1 .accent{
+    background:var(--brand-grad);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:13px;
+    margin:6px 0 26px 46px;
+    font-family:var(--font-mono);
+    letter-spacing:0.01em;
+  }
+
+  h2{
+    font-family:var(--font-display);
+    font-size:16px;
+    font-weight:600;
+    color:var(--text);
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  h2::before{
+    content:'';
+    width:8px; height:8px;
+    border-radius:2px;
+    background:var(--brand-grad);
+    flex-shrink:0;
+  }
+
+  /* ---------- Stepper ---------- */
+  .steps{
+    display:flex;
+    gap:0;
+    margin-bottom:26px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:5px;
+  }
+  .step-pill{
+    flex:1;
+    text-align:center;
+    padding:9px 10px;
+    border-radius:999px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--faint);
+    transition:.25s;
+    font-family:var(--font-body);
+  }
+  .step-pill.active{
+    background:var(--brand-grad);
+    color:#060710;
+    box-shadow:0 4px 18px -4px rgba(232,25,123,0.55);
+  }
+  .step-pill.done{
+    color:var(--brand-2);
+  }
+
+  /* ---------- Cards ---------- */
+  .card{
+    position:relative;
+    background:linear-gradient(180deg, var(--panel2), var(--panel));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px;
+    margin-bottom:20px;
+    box-shadow:0 1px 0 var(--border-soft) inset, 0 20px 40px -24px rgba(0,0,0,0.6);
+  }
+  .card::before{
+    content:'';
+    position:absolute; top:0; left:24px; right:24px; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(232,25,123,0.5), transparent);
+  }
+
+  textarea{
+    width:100%;
+    min-height:220px;
+    background:var(--panel3);
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    padding:14px;
+    font-family:var(--font-mono);
+    font-size:13px;
+    resize:vertical;
+    transition:border-color .2s;
+  }
+  textarea:focus{
+    outline:none;
+    border-color:var(--brand);
+    box-shadow:0 0 0 3px rgba(232,25,123,0.15);
+  }
+  textarea::placeholder{color:var(--faint);}
+
+  button{
+    cursor:pointer;
+    border:none;
+    border-radius:9px;
+    padding:11px 20px;
+    font-size:13px;
+    font-weight:600;
+    font-family:var(--font-body);
+    transition:.15s ease;
+  }
+  .btn-primary{
+    background:var(--brand-grad);
+    color:#07080f;
+    box-shadow:0 6px 20px -6px rgba(232,25,123,0.6);
+  }
+  .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 26px -6px rgba(232,25,123,0.75);}
+  .btn-primary:active{transform:translateY(0);}
+
+  .btn-ghost{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover{color:var(--text); border-color:var(--brand-2);}
+
+  .btn-mini{
+    padding:5px 11px;
+    font-size:11px;
+    background:var(--panel3);
+    color:var(--brand-2);
+    border:1px solid var(--border);
+    border-radius:7px;
+    font-family:var(--font-mono);
+  }
+  .btn-mini:hover{border-color:var(--brand-2); color:#fff; background:rgba(29,219,139,0.08);}
+
+  .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
+
+  /* ---------- Tables ---------- */
   table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px;}
-  th{text-align:left;padding:8px 10px;color:var(--accent2);border-bottom:1px solid var(--border);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
-  td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
-  tr.urgent td{background:var(--danger-bg);color:#fca5a5;}
-  tr.account-paid td{opacity:0.4;text-decoration:line-through;border-color:rgba(39,52,74,0.5);}
+  th{
+    text-align:left;
+    padding:10px 12px;
+    color:var(--brand-2);
+    border-bottom:1px solid var(--border);
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-family:var(--font-mono);
+    font-weight:600;
+    background:rgba(255,255,255,0.015);
+  }
+  td{
+    padding:9px 12px;
+    border-bottom:1px solid var(--border-soft);
+    vertical-align:top;
+    font-family:var(--font-mono);
+    font-size:12px;
+  }
+  tbody tr{transition:background .12s;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  tr.urgent td{background:var(--danger-bg);color:#ffb3c0;}
+  tr.urgent:hover td{background:rgba(255,77,109,0.16);}
+  tr.account-paid td{opacity:0.38;text-decoration:line-through;border-color:rgba(38,40,56,0.5);}
   tr.account-paid td:first-child{opacity:1;text-decoration:none;}
-  td[contenteditable="true"]{outline:none;}
-  td[contenteditable="true"]:focus{background:#0c1320;border-radius:4px;}
-  .row-x{background:transparent;border:1px solid var(--border);color:var(--danger);width:24px;height:24px;border-radius:6px;padding:0;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  td[contenteditable="true"]{outline:none; border-radius:5px;}
+  td[contenteditable="true"]:focus{background:#06070c; box-shadow:0 0 0 1px var(--brand);}
+  .row-x{
+    background:transparent;border:1px solid var(--border);color:var(--danger);
+    width:24px;height:24px;border-radius:6px;padding:0;font-size:14px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
   .row-x:hover{background:var(--danger-bg);border-color:var(--danger);}
-  .col-actions{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;}
-  .platform-block{margin-bottom:28px; border-bottom: 2px dashed var(--border); padding-bottom: 15px;}
-  .platform-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;background:var(--panel2);padding:6px 12px;border-radius:8px;}
-  .subgroup-title{font-size:12.5px;font-weight:600;color:var(--accent);margin:14px 0 6px 4px;display:flex;align-items:center;gap:6px;}
-  .badge{background:var(--bg);color:var(--accent2);font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);}
-  .price-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
-  .price-label{font-size:13px;min-width:200px;}
-  .price-label .cnt{color:var(--muted);font-size:11.5px;}
+
+  .col-actions{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+
+  /* ---------- Platform blocks (brand-colored) ---------- */
+  .platform-block{
+    --pf-color:#e8197b;
+    margin-bottom:26px;
+    border:1px solid var(--border);
+    border-left:3px solid var(--pf-color);
+    border-radius:var(--radius-sm);
+    padding:18px 18px 16px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+  }
+  .platform-title{
+    --pf-color:#e8197b;
+    font-family:var(--font-display);
+    font-size:15px;
+    font-weight:700;
+    color:var(--text);
+    margin-bottom:18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px;
+    border-radius:10px;
+    flex-wrap:wrap;
+    gap:10px;
+    background:var(--panel3);
+    border:1px solid var(--border);
+  }
+  .platform-title > span:first-child{
+    display:flex; align-items:center; gap:10px;
+  }
+  .platform-title > span:first-child::before{
+    content:'';
+    width:10px; height:10px;
+    border-radius:50%;
+    background:var(--pf-color);
+    box-shadow:0 0 10px var(--pf-color);
+    flex-shrink:0;
+  }
+  .subgroup-title{
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin:6px 0 8px 0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--font-body);
+  }
+  .badge{
+    background:rgba(255,255,255,0.05);
+    color:var(--brand-2);
+    font-size:10.5px;
+    padding:3px 9px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    font-family:var(--font-mono);
+  }
+  .pf-dot{
+    display:inline-block;
+    width:9px; height:9px;
+    border-radius:50%;
+    margin-right:8px;
+    vertical-align:middle;
+    box-shadow:0 0 8px currentColor;
+  }
+
+  /* ---------- Pricing rows ---------- */
+  .price-row{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:12px 4px;border-bottom:1px solid var(--border-soft);flex-wrap:wrap;
+  }
+  .price-label{font-size:13px;min-width:200px; display:flex; align-items:center;}
+  .price-label .cnt{color:var(--faint);font-size:11px; font-family:var(--font-mono); margin-left:6px;}
   .price-input-wrap {display:flex;align-items:center;gap:8px;}
-  .price-input{width:95px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 9px;font-size:13px;}
-  .price-input:focus{border-color:var(--accent2);outline:none;}
-  .currency-lbl-inline{font-size:11px;color:var(--muted);font-weight:600;margin-right:8px;}
-  .totals{display:flex;gap:14px;margin:14px 0 20px;flex-wrap:wrap;}
-  .total-box{flex:1;min-width:160px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
-  .total-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-  .total-box .val{font-size:18px;font-weight:700;margin-top:6px;line-height:1.4;}
-  .pend{color:#fbbf24;} .pag{color:var(--ok);} .gen{color:var(--accent2);}
-  .empty{color:var(--muted);font-size:13px;padding:20px;text-align:center;}
-  .toast{position:fixed;bottom:20px;right:20px;background:var(--panel2);border:1px solid var(--accent);color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:9999;}
+  .price-input{
+    width:95px;background:var(--panel3);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:8px 10px;font-size:13px; font-family:var(--font-mono);
+    transition:border-color .15s;
+  }
+  .price-input:focus{border-color:var(--brand-2); outline:none; box-shadow:0 0 0 3px rgba(29,219,139,0.12);}
+  .currency-lbl-inline{font-size:10.5px;color:var(--faint);font-weight:600;margin-right:8px; font-family:var(--font-mono); text-transform:uppercase;}
+
+  /* ---------- Totals ---------- */
+  .totals{display:flex;gap:14px;margin:14px 0 22px;flex-wrap:wrap;}
+  .total-box{
+    flex:1;min-width:170px;background:var(--panel3);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:16px 18px; position:relative; overflow:hidden;
+  }
+  .total-box::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+  }
+  .total-box:nth-child(1)::before{background:var(--warn);}
+  .total-box:nth-child(2)::before{background:var(--ok);}
+  .total-box:nth-child(3)::before{background:var(--brand-grad);}
+  .total-box .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em; font-family:var(--font-mono);}
+  .total-box .val{font-size:19px;font-weight:700;margin-top:8px;line-height:1.4; font-family:var(--font-display); font-variant-numeric:tabular-nums;}
+  .pend{color:#ffcf85;} .pag{color:#7bf0bd;} .gen{color:#c9c2ff;}
+
+  .empty{color:var(--muted);font-size:13px;padding:30px;text-align:center; font-family:var(--font-mono);}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;
+    background:var(--panel3);border:1px solid var(--brand-2);color:var(--text);
+    padding:12px 18px;border-radius:10px;font-size:13px;
+    opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:9999;
+    box-shadow:0 10px 30px -8px rgba(0,0,0,0.6), 0 0 0 1px rgba(29,219,139,0.15);
+    font-family:var(--font-body); font-weight:500;
+  }
   .toast.show{opacity:1;transform:translateY(0);}
-  input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
-  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;}
+
+  input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand-2);cursor:pointer;}
+  .hint{font-size:11.5px;color:var(--faint);margin-top:10px; font-family:var(--font-mono);}
+
+  ::-webkit-scrollbar{height:8px; width:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--brand);}
+
+  @media (max-width:640px){
+    .sub{margin-left:0;}
+    .price-row{flex-direction:column; align-items:flex-start;}
+  }
 </style>
 </head>
 <body>
+<div class="app-shell">
 
-<h1>🌊 Organizador de Cuentas Streaming</h1>
-<div class="sub">Wave Play — Procesamiento total de datos, subgrupos por proveedor y gestión avanzada de stock manual</div>
+<div class="app-header">
+  <div class="signal-mark"><span></span><span></span><span></span><span></span><span></span></div>
+  <h1><span class="accent">Wave Play</span> — Organizador de Renovaciones y Stock del Día</h1>
+</div>
+<div class="sub">panel de control · renovaciones diarias · stock y proveedores</div>
 
 <div class="steps">
   <div class="step-pill" id="pill-1">1. Pegar</div>
@@ -103,7 +452,7 @@
   
   <!-- Formulario Fijo de YouTube Manual -->
   <div class="price-row" style="border-top: 2px dashed var(--border); margin-top: 24px; padding-top: 16px;">
-    <div class="price-label" style="font-weight:700; color:var(--accent2);">YouTube <span class="badge" style="color:var(--accent)">Manual / Stock</span></div>
+    <div class="price-label" style="font-weight:700; color:var(--brand-2);">YouTube <span class="badge" style="margin-left:8px;">Manual / Stock</span></div>
     <div class="price-input-wrap">
       <input type="number" id="ytManualCount" class="price-input" style="width:75px;" min="0" placeholder="Cant." oninput="updateYoutubeManual()">
       <span class="currency-lbl-inline">und</span>
@@ -115,7 +464,7 @@
   </div>
 
   <!-- Celdas Vacías Configurables -->
-  <div style="margin-top: 24px; font-size: 13px; color: var(--accent2); font-weight: 600; padding-bottom: 6px; border-bottom: 1px solid var(--border);">
+  <div style="margin-top: 24px; font-size: 12px; color: var(--brand-2); font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); text-transform:uppercase; letter-spacing:.04em;">
     🛠️ Lotes Adicionales / Registro de Stock Nuevo para Comprar
   </div>
   <div id="customRowsWrap"></div>
@@ -129,7 +478,7 @@
 <!-- STEP 4 -->
 <div class="card" id="step4" style="display:none;">
   <h2>Paso 4 — Tablas Organizadas y Desglose</h2>
-  <div class="hint" style="margin-bottom:16px;">Las cuentas están subagrupadas por proveedor dentro de cada plataforma. Usa el icono 📋 al final de cada fila para copiar correos individuales.</div>
+  <div class="hint" style="margin-bottom:16px;">Estructura con sangría derecha para subgrupos. Copia de forma Global (Plataforma), por Subgrupo (Proveedor) o Individual (Correo).</div>
   <div id="finalTablesWrap"></div>
 </div>
 
@@ -146,13 +495,13 @@
   </div>
 </div>
 
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 let accounts = []; 
 let groups = {};
 
-// Inicialización de data manual de stock
 let youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
 let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, currency: 'USDT', paid: false }));
 
@@ -173,6 +522,26 @@ const PLATFORM_PATTERNS = [
   {name:'Paramount+', re:/paramount/i},
   {name:'Temporales', re:/temporal(es)?/i},
 ];
+
+/* Colores de marca por plataforma — solo uso visual (bordes/acentos), no altera datos */
+const PLATFORM_COLORS = {
+  'Netflix': '#E50914',
+  'Disney+': '#1EA0E6',
+  'Star+': '#12CDD4',
+  'DGO': '#4C9AFF',
+  'YouTube Premium': '#FF3B3B',
+  'Crunchyroll': '#F47521',
+  'ViX': '#FF5A36',
+  'Apple TV+': '#C7C9CC',
+  'Spotify': '#1DB954',
+  'Deezer': '#A238FF',
+  'Plex': '#E5A00D',
+  'HBO Max': '#7B2FF7',
+  'Paramount+': '#3C82F6',
+  'Temporales': '#8B8FA3',
+  'Otros': '#E8197B'
+};
+function getPlatformColor(name){ return PLATFORM_COLORS[name] || '#E8197B'; }
 
 const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
 const DATE_RE = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
@@ -336,9 +705,10 @@ function renderPricingList() {
   Object.entries(groups).forEach(([k,g])=>{
     const valUsdt = g.currency === 'USDT' ? (g.price || '') : '';
     const valSoles = g.currency === 'S/.' ? (g.price || '') : '';
-    
+    const pfColor = getPlatformColor(g.platform);
+
     html += `<div class="price-row">
-      <div class="price-label">${g.platform} <span style="color:var(--accent2)">(${g.observation})</span> <span class="cnt">(${g.count} und)</span></div>
+      <div class="price-label"><span class="pf-dot" style="background:${pfColor}; color:${pfColor};"></span>${g.platform} <span style="color:var(--brand-2); margin-left:4px;">(${g.observation})</span> <span class="cnt">(${g.count} und)</span></div>
       <div class="price-input-wrap">
         <input type="number" class="price-input" min="0" step="0.01" value="${valUsdt}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'USDT', this)">
         <span class="currency-lbl-inline">USDT</span>
@@ -362,7 +732,6 @@ function updateGroupPrice(key, val, currency, el) {
   inputs.forEach(input => { if (input !== el) input.value = ''; });
 }
 
-// Controladores para YouTube Manual Fijo
 function updateYoutubeManual(){
   youtubeRow.count = parseInt(document.getElementById('ytManualCount').value) || 0;
 }
@@ -380,7 +749,6 @@ function updateYoutubeManualPrice(currency){
   }
 }
 
-// Renderizar las 5 celdas custom vacías
 function renderCustomRows(){
   let html = '';
   customRows.forEach((row, i)=>{
@@ -409,7 +777,6 @@ function updateCustomRowPrice(i, val, currency){
 }
 
 function generarFinal(){
-  // Reestructuración con Subagrupación por Proveedor dentro de la plataforma
   const byPlatformAndProvider = {};
   
   accounts.forEach(a=>{
@@ -421,32 +788,46 @@ function generarFinal(){
   let tablesHtml = '';
   Object.entries(byPlatformAndProvider).forEach(([platform, providersMap])=>{
     
-    // Contar total global de la plataforma para el título principal
     let platformTotal = 0;
     Object.values(providersMap).forEach(arr => platformTotal += arr.length);
 
-    tablesHtml += `<div class="platform-block">
-      <div class="platform-title">${platform} <span class="badge">${platformTotal} cuentas en total</span></div>`;
+    const safePlatform = platform.replace(/'/g, "\\'");
+    const pfColor = getPlatformColor(platform);
 
-    // Iterar cada subgrupo de proveedor
+    // Encabezado de Plataforma con botones de copiado GLOBAL incorporados a la derecha
+    tablesHtml += `<div class="platform-block" style="--pf-color:${pfColor}">
+      <div class="platform-title" style="--pf-color:${pfColor}">
+        <span>${platform} <span class="badge">${platformTotal} und en total</span></span>
+        <div class="col-actions" style="margin-bottom:0;">
+          <button class="btn-mini" onclick="copyColGlobal('${safePlatform}','platform')">🌍 Todo Marcas</button>
+          <button class="btn-mini" onclick="copyColGlobal('${safePlatform}','email')">🌍 Todo Correos</button>
+          <button class="btn-mini" onclick="copyColGlobal('${safePlatform}','password')">🌍 Todo Claves</button>
+        </div>
+      </div>`;
+
+    // Iteración de Proveedores con sangría aplicada a la derecha (margin-left: 24px)
     Object.entries(providersMap).forEach(([provider, list])=>{
+      const safeProvider = provider.replace(/'/g, "\\'");
+      
       tablesHtml += `
-      <div class="subgroup-title">👤 Proveedor: ${provider} <span class="badge" style="font-size:10.5px;">${list.length} und</span></div>
-      <div class="col-actions">
-        <button class="btn-mini" onclick="copyColSub('${platform}','${provider}','platform')">Copiar marcas</button>
-        <button class="btn-mini" onclick="copyColSub('${platform}','${provider}','email')">Copiar correos</button>
-        <button class="btn-mini" onclick="copyColSub('${platform}','${provider}','password')">Copiar claves</button>
-      </div>
-      <div style="overflow-x:auto; margin-bottom:12px;">
-        <table data-platform="${platform}" data-provider="${provider}">
-        <thead><tr>
-          <th style="width:40px;">✓</th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th style="width:45px; text-align:center;">Copiar</th>
-        </tr></thead><tbody>`;
+      <div style="margin-left: 24px; margin-bottom: 22px;">
+        <div class="subgroup-title">👤 Proveedor: ${provider} <span class="badge" style="font-size:10px;">${list.length} und</span></div>
+        <div class="col-actions">
+          <button class="btn-mini" onclick="copyColSub('${safePlatform}','${safeProvider}','platform')">Copiar marcas</button>
+          <button class="btn-mini" onclick="copyColSub('${safePlatform}','${safeProvider}','email')">Copiar correos</button>
+          <button class="btn-mini" onclick="copyColSub('${safePlatform}','${safeProvider}','password')">Copiar claves</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table data-platform="${platform}" data-provider="${provider}">
+          <thead><tr>
+            <th style="width:40px;">✓</th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th style="width:45px; text-align:center;">Copiar</th>
+          </tr></thead><tbody>`;
       
       list.forEach(a=>{
         const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
         const isChecked = a.renewedPaid ? 'checked' : '';
         const rowClass = [urgent, a.renewedPaid ? 'account-paid' : ''].join(' ').trim();
+        const safeEmail = a.email.replace(/'/g, "\\'");
         
         tablesHtml += `<tr class="${rowClass}" data-acc-id="${a.id}">
           <td><input type="checkbox" ${isChecked} onchange="toggleAccountPaid('${a.id}', this.checked)"></td>
@@ -455,11 +836,11 @@ function generarFinal(){
           <td data-col="password">${a.password}</td>
           <td data-col="dueDateStr">${a.dueDateStr}</td>
           <td data-col="days">${a.days===null?'—':a.days}</td>
-          <td style="text-align:center;"><button class="btn-mini" style="padding:2px 6px;" onclick="executeCopy('${a.email}', '¡Correo individual copiado! ✓')" title="Copiar este correo electrónico">📋</button></td>
+          <td style="text-align:center;"><button class="btn-mini" style="padding:2px 6px;" onclick="executeCopy('${safeEmail}', '¡Correo individual copiado! ✓')" title="Copiar este correo electrónico">📋</button></td>
         </tr>`;
       });
       
-      tablesHtml += `</tbody></table></div>`;
+      tablesHtml += `</tbody></table></div></div>`;
     });
 
     tablesHtml += `</div>`;
@@ -481,6 +862,19 @@ function toggleAccountPaid(id, checked) {
   }
 }
 
+// Copiado GLOBAL por Plataforma (Consolida todas las tablas internas que coincidan con la app)
+function copyColGlobal(platform, field){
+  const tables = document.querySelectorAll(`table[data-platform="${platform}"]`);
+  let allTexts = [];
+  tables.forEach(t => {
+    const cells = t.querySelectorAll(`td[data-col="${field}"]`);
+    cells.forEach(c => allTexts.push(c.textContent.trim()));
+  });
+  if(allTexts.length === 0) { showToast('No hay datos globales para copiar'); return; }
+  executeCopy(allTexts.join('\n'), '¡Copiado GLOBAL de la plataforma listo! ✓');
+}
+
+// Copiado por Subgrupo (Filtra por Plataforma y Proveedor específico)
 function copyColSub(platform, provider, field){
   const tables = document.querySelectorAll('table');
   let table = null;
@@ -521,7 +915,6 @@ function renderPayments(){
     <th>Pagado</th><th>Proveedor / Origen</th><th>Plataforma</th><th>Unidades</th><th>Costo Unitario</th><th>Total Lote</th><th>Acción</th>
   </tr></thead><tbody>`;
 
-  // 1. Grupos del Listado Base de Cuentas
   Object.entries(groups).forEach(([k,g])=>{
     const dynamicCount = g.accountIds.filter(id => {
       const a = accounts.find(acc => acc.id === id);
@@ -532,7 +925,7 @@ function renderPayments(){
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
       <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
       <td>${g.observation}</td>
-      <td>${g.platform}</td>
+      <td><span class="pf-dot" style="background:${getPlatformColor(g.platform)}; color:${getPlatformColor(g.platform)};"></span>${g.platform}</td>
       <td>${dynamicCount}</td>
       <td>${g.currency === 'S/.' ? 'S/. ' : ''}${g.price.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
       <td>${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
@@ -540,32 +933,30 @@ function renderPayments(){
     </tr>`;
   });
 
-  // 2. Fila de YouTube Manual de Stock
   if (youtubeRow.count > 0) {
     const ytTotal = youtubeRow.price * youtubeRow.count;
     html += `<tr class="${youtubeRow.paid?'paid':''}">
       <td><input type="checkbox" ${youtubeRow.paid?'checked':''} onchange="youtubeRow.paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
-      <td><span style="color:var(--accent2)">Stock Nuevo</span></td>
-      <td>YouTube (Manual)</td>
+      <td><span style="color:var(--brand-2)">Stock Nuevo</span></td>
+      <td><span class="pf-dot" style="background:${getPlatformColor('YouTube Premium')}; color:${getPlatformColor('YouTube Premium')};"></span>YouTube (Manual)</td>
       <td>${youtubeRow.count}</td>
       <td>${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${youtubeRow.price.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</td>
       <td>${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${ytTotal.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</td>
-      <td><span style="color:var(--muted); font-size:11px;">Manual</span></td>
+      <td><span style="color:var(--faint); font-size:11px;">Manual</span></td>
     </tr>`;
   }
 
-  // 3. Las 5 Filas Extras Configurables de Stock
   customRows.forEach((row, idx) => {
     if (row.count > 0 && row.platform.trim()) {
       const rowTotal = row.price * row.count;
       html += `<tr class="${row.paid?'paid':''}">
         <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
-        <td><span style="color:var(--accent2)">Stock Nuevo</span></td>
+        <td><span style="color:var(--brand-2)">Stock Nuevo</span></td>
         <td>${row.platform}</td>
         <td>${row.count}</td>
         <td>${row.currency === 'S/.' ? 'S/. ' : ''}${row.price.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</td>
         <td>${row.currency === 'S/.' ? 'S/. ' : ''}${rowTotal.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</td>
-        <td><span style="color:var(--muted); font-size:11px;">Manual</span></td>
+        <td><span style="color:var(--faint); font-size:11px;">Manual</span></td>
       </tr>`;
     }
   });
@@ -586,7 +977,6 @@ function updateTotals(){
   let pendUsdt=0, paidUsdt=0, genUsdt=0;
   let pendSoles=0, paidSoles=0, genSoles=0;
 
-  // Totales de la lista base
   Object.values(groups).forEach(g=>{
     const dynamicCount = g.accountIds.filter(id => {
       const a = accounts.find(acc => acc.id === id);
@@ -600,7 +990,6 @@ function updateTotals(){
     }
   });
 
-  // Totales de YouTube Manual
   if (youtubeRow.count > 0) {
     const total = youtubeRow.price * youtubeRow.count;
     if(youtubeRow.currency === 'S/.') {
@@ -610,7 +999,6 @@ function updateTotals(){
     }
   }
 
-  // Totales de las celdas de Stock Extra
   customRows.forEach(row => {
     if (row.count > 0 && row.platform.trim()) {
       const total = row.price * row.count;
@@ -622,9 +1010,9 @@ function updateTotals(){
     }
   });
 
-  document.getElementById('totPend').innerHTML = `<div>${pendUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#fca5a5">S/. ${pendSoles.toFixed(2)}</div>`;
+  document.getElementById('totPend').innerHTML = `<div>${pendUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#ffb3c0">S/. ${pendSoles.toFixed(2)}</div>`;
   document.getElementById('totPaid').innerHTML = `<div>${paidUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#a3e635">S/. ${paidSoles.toFixed(2)}</div>`;
-  document.getElementById('totGen').innerHTML = `<div>${genUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:var(--accent)">S/. ${genSoles.toFixed(2)}</div>`;
+  document.getElementById('totGen').innerHTML = `<div>${genUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:var(--brand-2)">S/. ${genSoles.toFixed(2)}</div>`;
 }
 
 function reset(){
