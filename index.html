@@ -27,11 +27,10 @@
   .btn-mini{padding:4px 9px;font-size:11px;background:var(--panel2);color:var(--accent2);border:1px solid var(--border);border-radius:6px;}
   .btn-mini:hover{border-color:var(--accent2);}
   .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
-  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px;}
   th{text-align:left;padding:8px 10px;color:var(--accent2);border-bottom:1px solid var(--border);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
   td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
   tr.urgent td{background:var(--danger-bg);color:#fca5a5;}
-  tr.paid td{background:var(--ok-bg);}
   tr.account-paid td{opacity:0.4;text-decoration:line-through;border-color:rgba(39,52,74,0.5);}
   tr.account-paid td:first-child{opacity:1;text-decoration:none;}
   td[contenteditable="true"]{outline:none;}
@@ -39,9 +38,10 @@
   .row-x{background:transparent;border:1px solid var(--border);color:var(--danger);width:24px;height:24px;border-radius:6px;padding:0;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;}
   .row-x:hover{background:var(--danger-bg);border-color:var(--danger);}
   .col-actions{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;}
-  .platform-block{margin-bottom:26px;}
-  .platform-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
-  .badge{background:var(--panel2);color:var(--muted);font-size:11px;padding:2px 8px;border-radius:10px;}
+  .platform-block{margin-bottom:28px; border-bottom: 2px dashed var(--border); padding-bottom: 15px;}
+  .platform-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;background:var(--panel2);padding:6px 12px;border-radius:8px;}
+  .subgroup-title{font-size:12.5px;font-weight:600;color:var(--accent);margin:14px 0 6px 4px;display:flex;align-items:center;gap:6px;}
+  .badge{background:var(--bg);color:var(--accent2);font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid var(--border);}
   .price-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
   .price-label{font-size:13px;min-width:200px;}
   .price-label .cnt{color:var(--muted);font-size:11.5px;}
@@ -64,22 +64,22 @@
 <body>
 
 <h1>🌊 Organizador de Cuentas Streaming</h1>
-<div class="sub">Wave Play — pega tu listado, revisa, asigna precios mixtos y genera tablas + pagos a proveedores</div>
+<div class="sub">Wave Play — Procesamiento total de datos, subgrupos por proveedor y gestión avanzada de stock manual</div>
 
 <div class="steps">
   <div class="step-pill" id="pill-1">1. Pegar</div>
   <div class="step-pill" id="pill-2">2. Revisar</div>
-  <div class="step-pill" id="pill-3">3. Precios</div>
-  <div class="step-pill" id="pill-4">4. Tablas + Pagos</div>
+  <div class="step-pill" id="pill-3">3. Precios + Stock</div>
+  <div class="step-pill" id="pill-4">4. Tablas Finales</div>
 </div>
 
 <!-- STEP 1 -->
 <div class="card" id="step1">
   <h2>Paso 1 — Pega tu listado crudo</h2>
-  <textarea id="rawInput" placeholder="Pega aquí el listado de cuentas (Plataforma, Correo, Clave, Proveedor, Fecha fin, Días restantes)..."></textarea>
-  <div class="hint">Se excluyen automáticamente: TEMPORALES, HBO MAX y PARAMOUNT. Los días restantes se recalculan según la fecha de hoy si se provee la fecha final.</div>
+  <textarea id="rawInput" placeholder="Pega aquí el listado completo de cuentas de manera libre..."></textarea>
+  <div class="hint">Filtros desactivados: se procesará el 100% de la información ingresada.</div>
   <div class="row">
-    <button class="btn-primary" onclick="organizar()">Organizar</button>
+    <button class="btn-primary" onclick="organizar()">Organizar Todo</button>
   </div>
 </div>
 
@@ -87,7 +87,7 @@
 <div class="card" id="step2" style="display:none;">
   <h2>Paso 2 — Revisa y corrige (editable)</h2>
   <div id="previewTableWrap"></div>
-  <div class="hint">Haz clic en cualquier celda para corregirla. Usa la × para quitar una cuenta completa.</div>
+  <div class="hint">Haz clic en cualquier celda para corregirla antes de continuar.</div>
   <div class="row">
     <button class="btn-ghost" onclick="goStep(1)">← Volver</button>
     <button class="btn-primary" onclick="goPricing()">Continuar a precios →</button>
@@ -96,24 +96,45 @@
 
 <!-- STEP 3 -->
 <div class="card" id="step3" style="display:none;">
-  <h2>Paso 3 — Precio por proveedor (Rellena la casilla correspondiente)</h2>
-  <div class="hint" style="margin-bottom: 12px;">Ingresa el monto en la columna de la moneda que use ese lote. La otra casilla se limpiará automáticamente.</div>
+  <h2>Paso 3 — Asignación de Costos y Compra de Stock Nuevo</h2>
+  <div class="hint" style="margin-bottom: 16px;">Rellena el precio unitario en la columna correspondiente (Dólares o Soles).</div>
+  
   <div id="pricingWrap"></div>
-  <div class="row">
+  
+  <!-- Formulario Fijo de YouTube Manual -->
+  <div class="price-row" style="border-top: 2px dashed var(--border); margin-top: 24px; padding-top: 16px;">
+    <div class="price-label" style="font-weight:700; color:var(--accent2);">YouTube <span class="badge" style="color:var(--accent)">Manual / Stock</span></div>
+    <div class="price-input-wrap">
+      <input type="number" id="ytManualCount" class="price-input" style="width:75px;" min="0" placeholder="Cant." oninput="updateYoutubeManual()">
+      <span class="currency-lbl-inline">und</span>
+      <input type="number" id="ytManualPriceUSDT" class="price-input" min="0" step="0.01" placeholder="0.00" oninput="updateYoutubeManualPrice('USDT')">
+      <span class="currency-lbl-inline">USDT</span>
+      <input type="number" id="ytManualPriceSoles" class="price-input" min="0" step="0.01" placeholder="0.00" oninput="updateYoutubeManualPrice('S/.')">
+      <span class="currency-lbl-inline">S/.</span>
+    </div>
+  </div>
+
+  <!-- Celdas Vacías Configurables -->
+  <div style="margin-top: 24px; font-size: 13px; color: var(--accent2); font-weight: 600; padding-bottom: 6px; border-bottom: 1px solid var(--border);">
+    🛠️ Lotes Adicionales / Registro de Stock Nuevo para Comprar
+  </div>
+  <div id="customRowsWrap"></div>
+
+  <div class="row" style="margin-top:20px;">
     <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
-    <button class="btn-primary" onclick="generarFinal()">Generar tablas →</button>
+    <button class="btn-primary" onclick="generarFinal()">Generar Todo →</button>
   </div>
 </div>
 
 <!-- STEP 4 -->
 <div class="card" id="step4" style="display:none;">
-  <h2>Paso 4 — Tablas finales</h2>
-  <div class="hint" style="margin-bottom:12px;">Marca el checklist inicial (✓) si esa cuenta ya fue pagada individualmente para excluirla del cálculo del proveedor.</div>
+  <h2>Paso 4 — Tablas Organizadas y Desglose</h2>
+  <div class="hint" style="margin-bottom:16px;">Las cuentas están subagrupadas por proveedor dentro de cada plataforma. Usa el icono 📋 al final de cada fila para copiar correos individuales.</div>
   <div id="finalTablesWrap"></div>
 </div>
 
 <div class="card" id="paymentsCard" style="display:none;">
-  <h2>Desglose de pagos a proveedores</h2>
+  <h2>Desglose de pagos a proveedores (Incluye Stock)</h2>
   <div class="totals">
     <div class="total-box"><div class="lbl">Pendiente</div><div class="val pend" id="totPend"></div></div>
     <div class="total-box"><div class="lbl">Pagado</div><div class="val pag" id="totPaid"></div></div>
@@ -131,7 +152,10 @@
 let accounts = []; 
 let groups = {};
 
-const EXCLUDED = ['TEMPORALES','HBO MAX','HBOMAX','HBO','PARAMOUNT','PARAMOUNT+'];
+// Inicialización de data manual de stock
+let youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
+let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, currency: 'USDT', paid: false }));
+
 const PLATFORM_PATTERNS = [
   {name:'Prime Video', re:/prime\s*video|amazon\s*prime/i},
   {name:'Disney+', re:/disney\s*\+|disney\s*plus|\bdisney\b/i},
@@ -173,7 +197,7 @@ function goStep(n){
   for(let i=1;i<=4;i++){
     document.getElementById('step'+i).style.display = (i===n)?'block':'none';
   }
-  document.getElementById('paymentsCard').style.display='none';
+  if(n!==4) document.getElementById('paymentsCard').style.display='none';
   setPill(n);
 }
 
@@ -182,12 +206,7 @@ function canonicalizePlatform(text){
   for(const p of PLATFORM_PATTERNS){
     if(p.re.test(text)) return p.name;
   }
-  return null;
-}
-
-function isExcluded(name){
-  if(!name) return false;
-  return EXCLUDED.some(ex => ex.toLowerCase() === name.trim().toLowerCase());
+  return text.trim(); 
 }
 
 function organizar(){
@@ -206,11 +225,9 @@ function organizar(){
       const providerRaw = (i + 2) < lines.length ? lines[i+2] : '';
 
       let platformName = canonicalizePlatform(platformRaw);
-      if(!platformName) platformName = 'Sin plataforma';
+      if(!platformName) platformName = 'Otros';
 
-      if(isExcluded(platformName) || isExcluded(platformRaw)) continue;
-
-      let observation = '(sin obs.)';
+      let observation = 'Sin Proveedor';
       if(providerRaw){
         const firstWord = providerRaw.split(/\s+/)[0];
         if(firstWord) observation = firstWord;
@@ -247,12 +264,12 @@ function organizar(){
         dueDateStr: dueDateStr,
         days: days,
         observation: observation,
-        renewedPaid: false // Control individual de pago
+        renewedPaid: false
       });
     }
   }
 
-  if(accounts.length===0){ showToast('Todo fue excluido o no se pudo procesar'); return; }
+  if(accounts.length===0){ showToast('No se detectaron correos válidos.'); return; }
   renderPreview();
   goStep(2);
 }
@@ -260,17 +277,17 @@ function organizar(){
 function removeRow(id){
   accounts = accounts.filter(a=>a.id!==id);
   renderPreview();
-  showToast('Cuenta quitada');
+  showToast('Cuenta removida');
 }
 
 function renderPreview(){
   let html = `<div style="overflow-x:auto"><table><thead><tr>
-    <th></th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Observación</th>
+    <th></th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Proveedor</th>
   </tr></thead><tbody>`;
   accounts.forEach(a=>{
     const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
     html += `<tr class="${urgent}" data-id="${a.id}">
-      <td><button class="row-x" onclick="removeRow('${a.id}')" title="Quitar esta cuenta">×</button></td>
+      <td><button class="row-x" onclick="removeRow('${a.id}')">×</button></td>
       <td contenteditable="true" data-field="platform">${a.platform}</td>
       <td contenteditable="true" data-field="email">${a.email}</td>
       <td contenteditable="true" data-field="password">${a.password}</td>
@@ -283,7 +300,7 @@ function renderPreview(){
   document.getElementById('previewTableWrap').innerHTML = html;
 
   document.querySelectorAll('#previewTableWrap td[contenteditable]').forEach(td=>{
-    td.addEventListener('blur', ()=>{
+    td.addEventListener('blur', () => {
       const tr = td.closest('tr');
       const id = tr.dataset.id;
       const field = td.dataset.field;
@@ -310,6 +327,7 @@ function goPricing(){
     groups[k].accountIds.push(a.id);
   });
   renderPricingList();
+  renderCustomRows();
   goStep(3);
 }
 
@@ -320,79 +338,135 @@ function renderPricingList() {
     const valSoles = g.currency === 'S/.' ? (g.price || '') : '';
     
     html += `<div class="price-row">
-      <div class="price-label">${g.platform} — ${g.observation} <span class="cnt">(${g.count} cuenta${g.count>1?'s':''})</span></div>
+      <div class="price-label">${g.platform} <span style="color:var(--accent2)">(${g.observation})</span> <span class="cnt">(${g.count} und)</span></div>
       <div class="price-input-wrap">
         <input type="number" class="price-input" min="0" step="0.01" value="${valUsdt}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'USDT', this)">
         <span class="currency-lbl-inline">USDT</span>
-        
         <input type="number" class="price-input" min="0" step="0.01" value="${valSoles}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'S/.', this)">
         <span class="currency-lbl-inline">S/.</span>
       </div>
     </div>`;
   });
-  document.getElementById('pricingWrap').innerHTML = html || '<div class="empty">No hay grupos detectados</div>';
+  document.getElementById('pricingWrap').innerHTML = html || '<div class="empty">No hay cuentas del listado base.</div>';
 }
 
 function updateGroupPrice(key, val, currency, el) {
   const row = el.closest('.price-input-wrap');
   const inputs = row.querySelectorAll('.price-input');
-  
   if (!val.trim() || parseFloat(val) === 0) {
-    if (groups[key].currency === currency) {
-      groups[key].price = 0;
-    }
+    if (groups[key].currency === currency) groups[key].price = 0;
     return;
   }
-
   groups[key].price = parseFloat(val) || 0;
   groups[key].currency = currency;
+  inputs.forEach(input => { if (input !== el) input.value = ''; });
+}
 
-  inputs.forEach(input => {
-    if (input !== el) input.value = '';
+// Controladores para YouTube Manual Fijo
+function updateYoutubeManual(){
+  youtubeRow.count = parseInt(document.getElementById('ytManualCount').value) || 0;
+}
+function updateYoutubeManualPrice(currency){
+  if(currency === 'USDT'){
+    const val = document.getElementById('ytManualPriceUSDT').value;
+    youtubeRow.price = parseFloat(val) || 0;
+    youtubeRow.currency = 'USDT';
+    if(val) document.getElementById('ytManualPriceSoles').value = '';
+  } else {
+    const val = document.getElementById('ytManualPriceSoles').value;
+    youtubeRow.price = parseFloat(val) || 0;
+    youtubeRow.currency = 'S/.';
+    if(val) document.getElementById('ytManualPriceUSDT').value = '';
+  }
+}
+
+// Renderizar las 5 celdas custom vacías
+function renderCustomRows(){
+  let html = '';
+  customRows.forEach((row, i)=>{
+    html += `<div class="price-row">
+      <div class="price-input-wrap" style="flex:1;">
+        <input type="text" class="price-input" style="width:100%;" value="${row.platform}" placeholder="Nombre de Plataforma Extra ${i+1}" oninput="customRows[i].platform = this.value">
+      </div>
+      <div class="price-input-wrap">
+        <input type="number" class="price-input" style="width:70px;" min="0" value="${row.count || ''}" placeholder="Cant." oninput="customRows[i].count = parseInt(this.value)||0">
+        <span class="currency-lbl-inline">und</span>
+        <input type="number" class="price-input" id="cRowUsdt-${i}" min="0" step="0.01" value="${row.currency==='USDT'&&row.price?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'USDT')">
+        <span class="currency-lbl-inline">USDT</span>
+        <input type="number" class="price-input" id="cRowSoles-${i}" min="0" step="0.01" value="${row.currency==='S/.'&&row.price?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'S/.')">
+        <span class="currency-lbl-inline">S/.</span>
+      </div>
+    </div>`;
   });
+  document.getElementById('customRowsWrap').innerHTML = html;
+}
+
+function updateCustomRowPrice(i, val, currency){
+  customRows[i].price = parseFloat(val) || 0;
+  customRows[i].currency = currency;
+  if(currency === 'USDT') document.getElementById('cRowSoles-'+i).value = '';
+  else document.getElementById('cRowUsdt-'+i).value = '';
 }
 
 function generarFinal(){
-  const byPlatform = {};
+  // Reestructuración con Subagrupación por Proveedor dentro de la plataforma
+  const byPlatformAndProvider = {};
+  
   accounts.forEach(a=>{
-    if(!byPlatform[a.platform]) byPlatform[a.platform] = [];
-    byPlatform[a.platform].push(a);
+    if(!byPlatformAndProvider[a.platform]) byPlatformAndProvider[a.platform] = {};
+    if(!byPlatformAndProvider[a.platform][a.observation]) byPlatformAndProvider[a.platform][a.observation] = [];
+    byPlatformAndProvider[a.platform][a.observation].push(a);
   });
 
   let tablesHtml = '';
-  Object.entries(byPlatform).forEach(([platform, list])=>{
-    tablesHtml += `<div class="platform-block">
-      <div class="platform-title">${platform} <span class="badge">${list.length} cuenta${list.length>1?'s':''}</span></div>
-      <div class="col-actions">
-        <button class="btn-mini" onclick="copyCol('${platform}','platform')">Copiar plataformas</button>
-        <button class="btn-mini" onclick="copyCol('${platform}','email')">Copiar correos</button>
-        <button class="btn-mini" onclick="copyCol('${platform}','password')">Copiar claves</button>
-        <button class="btn-mini" onclick="copyCol('${platform}','days')">Copiar días</button>
-        <button class="btn-mini" onclick="copyCol('${platform}','observation')">Copiar observación</button>
-      </div>
-      <div style="overflow-x:auto"><table data-platform="${platform}"><thead><tr>
-        <th style="width:40px;">✓</th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Observación</th>
-      </tr></thead><tbody>`;
-    list.forEach(a=>{
-      const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
-      const isChecked = a.renewedPaid ? 'checked' : '';
-      const rowClass = [urgent, a.renewedPaid ? 'account-paid' : ''].join(' ').trim();
-      
-      tablesHtml += `<tr class="${rowClass}" data-acc-id="${a.id}">
-        <td><input type="checkbox" ${isChecked} onchange="toggleAccountPaid('${a.id}', this.checked)" title="Marcar si ya se pagó la renovación de esta cuenta"></td>
-        <td data-col="platform">${a.platform}</td>
-        <td data-col="email">${a.email}</td>
-        <td data-col="password">${a.password}</td>
-        <td data-col="dueDateStr">${a.dueDateStr}</td>
-        <td data-col="days">${a.days===null?'—':a.days}</td>
-        <td data-col="observation">${a.observation}</td>
-      </tr>`;
-    });
-    tablesHtml += `</tbody></table></div></div>`;
-  });
-  document.getElementById('finalTablesWrap').innerHTML = tablesHtml || '<div class="empty">Sin datos</div>';
-  goStep(4);
+  Object.entries(byPlatformAndProvider).forEach(([platform, providersMap])=>{
+    
+    // Contar total global de la plataforma para el título principal
+    let platformTotal = 0;
+    Object.values(providersMap).forEach(arr => platformTotal += arr.length);
 
+    tablesHtml += `<div class="platform-block">
+      <div class="platform-title">${platform} <span class="badge">${platformTotal} cuentas en total</span></div>`;
+
+    // Iterar cada subgrupo de proveedor
+    Object.entries(providersMap).forEach(([provider, list])=>{
+      tablesHtml += `
+      <div class="subgroup-title">👤 Proveedor: ${provider} <span class="badge" style="font-size:10.5px;">${list.length} und</span></div>
+      <div class="col-actions">
+        <button class="btn-mini" onclick="copyColSub('${platform}','${provider}','platform')">Copiar marcas</button>
+        <button class="btn-mini" onclick="copyColSub('${platform}','${provider}','email')">Copiar correos</button>
+        <button class="btn-mini" onclick="copyColSub('${platform}','${provider}','password')">Copiar claves</button>
+      </div>
+      <div style="overflow-x:auto; margin-bottom:12px;">
+        <table data-platform="${platform}" data-provider="${provider}">
+        <thead><tr>
+          <th style="width:40px;">✓</th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th style="width:45px; text-align:center;">Copiar</th>
+        </tr></thead><tbody>`;
+      
+      list.forEach(a=>{
+        const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
+        const isChecked = a.renewedPaid ? 'checked' : '';
+        const rowClass = [urgent, a.renewedPaid ? 'account-paid' : ''].join(' ').trim();
+        
+        tablesHtml += `<tr class="${rowClass}" data-acc-id="${a.id}">
+          <td><input type="checkbox" ${isChecked} onchange="toggleAccountPaid('${a.id}', this.checked)"></td>
+          <td data-col="platform">${a.platform}</td>
+          <td data-col="email">${a.email}</td>
+          <td data-col="password">${a.password}</td>
+          <td data-col="dueDateStr">${a.dueDateStr}</td>
+          <td data-col="days">${a.days===null?'—':a.days}</td>
+          <td style="text-align:center;"><button class="btn-mini" style="padding:2px 6px;" onclick="executeCopy('${a.email}', '¡Correo individual copiado! ✓')" title="Copiar este correo electrónico">📋</button></td>
+        </tr>`;
+      });
+      
+      tablesHtml += `</tbody></table></div>`;
+    });
+
+    tablesHtml += `</div>`;
+  });
+
+  document.getElementById('finalTablesWrap').innerHTML = tablesHtml || '<div class="empty">Sin cuentas procesadas</div>';
+  goStep(4);
   renderPayments();
   document.getElementById('paymentsCard').style.display = 'block';
 }
@@ -403,87 +477,56 @@ function toggleAccountPaid(id, checked) {
     acc.renewedPaid = checked;
     const tr = document.querySelector(`tr[data-acc-id="${id}"]`);
     if (tr) tr.classList.toggle('account-paid', checked);
-    
-    // Forzar el recálculo y renderizado dinámico de pagos
     renderPayments();
   }
 }
 
-function copyCol(platform, field){
+function copyColSub(platform, provider, field){
   const tables = document.querySelectorAll('table');
   let table = null;
   for(const t of tables) {
-    if(t.dataset.platform === platform) { table = t; break; }
+    if(t.dataset.platform === platform && t.dataset.provider === provider) { table = t; break; }
   }
   if(!table) return;
-  
   const cells = table.querySelectorAll(`td[data-col="${field}"]`);
   const text = [...cells].map(c=>c.textContent.trim()).join('\n');
-  
-  executeCopy(text, '¡Copiado al portapapeles! ✓');
+  executeCopy(text, '¡Columna de subgrupo copiada! ✓');
 }
 
 function executeCopy(text, successMessage) {
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text)
-      .then(() => showToast(successMessage))
-      .catch(() => fallbackCopy(text, successMessage));
+    navigator.clipboard.writeText(text).then(() => showToast(successMessage)).catch(() => fallbackCopy(text, successMessage));
   } else {
     fallbackCopy(text, successMessage);
   }
 }
 
 function fallbackCopy(text, successMessage) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed'; 
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand('copy');
-    showToast(successMessage || '¡Copiado al portapapeles! ✓');
-  } catch(e) {
-    showToast('Error al copiar');
-  }
+  const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showToast(successMessage); } catch(e) { showToast('Error al copiar'); }
   document.body.removeChild(ta);
 }
 
 function copyProviderMessage(key) {
-  const g = groups[key];
-  if (!g) return;
-  
-  // Filtrar correos omitiendo los que ya están marcados como pagados
-  const emails = g.accountIds.map(id => accounts.find(a => a.id === id))
-                            .filter(acc => acc && !acc.renewedPaid)
-                            .map(acc => acc.email);
-
-  if (emails.length === 0) {
-    showToast('No hay cuentas pendientes en este bloque ✓');
-    return;
-  }
-
-  let messageText = '';
-  if (emails.length === 1) {
-    messageText = `Hola, renovación de ${emails[0]}`;
-  } else {
-    messageText = `Hola, renovación de:\n${emails.join('\n')}`;
-  }
-
-  executeCopy(messageText, '¡Mensaje de renovación copiado! ✓');
+  const g = groups[key]; if (!g) return;
+  const emails = g.accountIds.map(id => accounts.find(a => a.id === id)).filter(acc => acc && !acc.renewedPaid).map(acc => acc.email);
+  if (emails.length === 0) { showToast('Sin cuentas pendientes en este lote ✓'); return; }
+  let msg = emails.length === 1 ? `Hola, renovación de ${emails[0]}` : `Hola, renovación de:\n${emails.join('\n')}`;
+  executeCopy(msg, '¡Mensaje copiado! ✓');
 }
 
 function renderPayments(){
   let html = `<div style="overflow-x:auto"><table><thead><tr>
-    <th>Pagado</th><th>Proveedor</th><th>Plataforma</th><th>Cuentas</th><th>Precio/u</th><th>Total</th><th>Acción</th>
+    <th>Pagado</th><th>Proveedor / Origen</th><th>Plataforma</th><th>Unidades</th><th>Costo Unitario</th><th>Total Lote</th><th>Acción</th>
   </tr></thead><tbody>`;
+
+  // 1. Grupos del Listado Base de Cuentas
   Object.entries(groups).forEach(([k,g])=>{
-    // Contar de manera dinámica solo las cuentas que NO estén marcadas como ya pagadas
     const dynamicCount = g.accountIds.filter(id => {
       const a = accounts.find(acc => acc.id === id);
       return a ? !a.renewedPaid : false;
     }).length;
-
     const total = (g.price * dynamicCount);
     
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
@@ -496,6 +539,37 @@ function renderPayments(){
       <td><button class="btn-mini" onclick="copyProviderMessage('${k}')">📋 Copiar Mensaje</button></td>
     </tr>`;
   });
+
+  // 2. Fila de YouTube Manual de Stock
+  if (youtubeRow.count > 0) {
+    const ytTotal = youtubeRow.price * youtubeRow.count;
+    html += `<tr class="${youtubeRow.paid?'paid':''}">
+      <td><input type="checkbox" ${youtubeRow.paid?'checked':''} onchange="youtubeRow.paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
+      <td><span style="color:var(--accent2)">Stock Nuevo</span></td>
+      <td>YouTube (Manual)</td>
+      <td>${youtubeRow.count}</td>
+      <td>${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${youtubeRow.price.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</td>
+      <td>${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${ytTotal.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</td>
+      <td><span style="color:var(--muted); font-size:11px;">Manual</span></td>
+    </tr>`;
+  }
+
+  // 3. Las 5 Filas Extras Configurables de Stock
+  customRows.forEach((row, idx) => {
+    if (row.count > 0 && row.platform.trim()) {
+      const rowTotal = row.price * row.count;
+      html += `<tr class="${row.paid?'paid':''}">
+        <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
+        <td><span style="color:var(--accent2)">Stock Nuevo</span></td>
+        <td>${row.platform}</td>
+        <td>${row.count}</td>
+        <td>${row.currency === 'S/.' ? 'S/. ' : ''}${row.price.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</td>
+        <td>${row.currency === 'S/.' ? 'S/. ' : ''}${rowTotal.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</td>
+        <td><span style="color:var(--muted); font-size:11px;">Manual</span></td>
+      </tr>`;
+    }
+  });
+
   html += `</tbody></table></div>`;
   document.getElementById('paymentsWrap').innerHTML = html;
   updateTotals();
@@ -512,20 +586,39 @@ function updateTotals(){
   let pendUsdt=0, paidUsdt=0, genUsdt=0;
   let pendSoles=0, paidSoles=0, genSoles=0;
 
+  // Totales de la lista base
   Object.values(groups).forEach(g=>{
-    // Calcular dinámicamente el conteo restando los checklist del paso 4
     const dynamicCount = g.accountIds.filter(id => {
       const a = accounts.find(acc => acc.id === id);
       return a ? !a.renewedPaid : false;
     }).length;
-
     const total = g.price * dynamicCount;
     if(g.currency === 'S/.') {
-      genSoles += total;
-      if(g.paid) paidSoles += total; else pendSoles += total;
+      genSoles += total; if(g.paid) paidSoles += total; else pendSoles += total;
     } else {
-      genUsdt += total;
-      if(g.paid) paidUsdt += total; else pendUsdt += total;
+      genUsdt += total; if(g.paid) paidUsdt += total; else pendUsdt += total;
+    }
+  });
+
+  // Totales de YouTube Manual
+  if (youtubeRow.count > 0) {
+    const total = youtubeRow.price * youtubeRow.count;
+    if(youtubeRow.currency === 'S/.') {
+      genSoles += total; if(youtubeRow.paid) paidSoles += total; else pendSoles += total;
+    } else {
+      genUsdt += total; if(youtubeRow.paid) paidUsdt += total; else pendUsdt += total;
+    }
+  }
+
+  // Totales de las celdas de Stock Extra
+  customRows.forEach(row => {
+    if (row.count > 0 && row.platform.trim()) {
+      const total = row.price * row.count;
+      if(row.currency === 'S/.') {
+        genSoles += total; if(row.paid) paidSoles += total; else pendSoles += total;
+      } else {
+        genUsdt += total; if(row.paid) paidUsdt += total; else pendUsdt += total;
+      }
     }
   });
 
@@ -536,7 +629,12 @@ function updateTotals(){
 
 function reset(){
   accounts = []; groups = {};
+  youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
+  customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, currency: 'USDT', paid: false }));
   document.getElementById('rawInput').value = '';
+  document.getElementById('ytManualCount').value = '';
+  document.getElementById('ytManualPriceUSDT').value = '';
+  document.getElementById('ytManualPriceSoles').value = '';
   document.getElementById('paymentsCard').style.display='none';
   goStep(1);
 }
