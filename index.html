@@ -290,7 +290,8 @@
     border-left:3px solid var(--pf-color);
     border-radius:var(--radius-sm);
     padding:18px 18px 16px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+    background:var(--panel2);
+    background:linear-gradient(180deg, color-mix(in srgb, var(--pf-color) 10%, var(--panel2)), var(--panel));
   }
   .platform-title{
     --pf-color:#e8197b;
@@ -307,7 +308,9 @@
     flex-wrap:wrap;
     gap:10px;
     background:var(--panel3);
+    background:color-mix(in srgb, var(--pf-color) 16%, var(--panel3));
     border:1px solid var(--border);
+    border-color:color-mix(in srgb, var(--pf-color) 35%, var(--border));
   }
   .platform-title > span:first-child{
     display:flex; align-items:center; gap:10px;
@@ -363,6 +366,25 @@
   }
   .price-input:focus{border-color:var(--brand-2); outline:none; box-shadow:0 0 0 3px rgba(29,219,139,0.12);}
   .currency-lbl-inline{font-size:10.5px;color:var(--faint);font-weight:600;margin-right:8px; font-family:var(--font-mono); text-transform:uppercase;}
+
+  /* Costo unitario editable dentro del desglose de pagos */
+  .cost-cell{display:flex; align-items:center; gap:6px; flex-wrap:nowrap;}
+  .price-edit{width:78px; padding:6px 8px;}
+  .btn-copy-price{padding:5px 8px; flex-shrink:0;}
+
+  /* Total del lote — resaltado para no confundirlo con el costo unitario */
+  .total-chip{
+    display:inline-block;
+    font-weight:700;
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    padding:6px 12px;
+    border-radius:8px;
+    color:#ffe3f0;
+    background:color-mix(in srgb, var(--brand) 20%, var(--panel3));
+    border:1px solid color-mix(in srgb, var(--brand) 45%, var(--border));
+    white-space:nowrap;
+  }
 
   /* ---------- Totals ---------- */
   .totals{display:flex;gap:14px;margin:14px 0 22px;flex-wrap:wrap;}
@@ -503,7 +525,7 @@ let accounts = [];
 let groups = {};
 
 let youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
-let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, currency: 'USDT', paid: false }));
+let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false }));
 
 const PLATFORM_PATTERNS = [
   {name:'Prime Video', re:/prime\s*video|amazon\s*prime/i},
@@ -545,6 +567,9 @@ function getPlatformColor(name){ return PLATFORM_COLORS[name] || '#E8197B'; }
 
 const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
 const DATE_RE = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
+/* Líneas que son solo una observación/nota (ej: "reemplazo de correo@x.com") aunque contengan un correo,
+   no deben interpretarse como el inicio de una cuenta nueva. */
+const NOTE_ONLY_RE = /reemplazo/i;
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -587,7 +612,7 @@ function organizar(){
   let idx = 0;
 
   for(let i = 0; i < lines.length; i++){
-    if(EMAIL_RE.test(lines[i])){
+    if(EMAIL_RE.test(lines[i]) && !NOTE_ONLY_RE.test(lines[i])){
       const emailText = lines[i];
       const platformRaw = i > 0 ? lines[i-1] : '';
       const passwordText = (i + 1) < lines.length ? lines[i+1] : '';
@@ -690,7 +715,7 @@ function goPricing(){
   accounts.forEach(a=>{
     const k = groupKey(a);
     if(!groups[k]) {
-      groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, currency:'USDT', paid:false, accountIds:[]};
+      groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, priceSet:false, currency:'USDT', paid:false, accountIds:[]};
     }
     groups[k].count++;
     groups[k].accountIds.push(a.id);
@@ -703,8 +728,8 @@ function goPricing(){
 function renderPricingList() {
   let html = '';
   Object.entries(groups).forEach(([k,g])=>{
-    const valUsdt = g.currency === 'USDT' ? (g.price || '') : '';
-    const valSoles = g.currency === 'S/.' ? (g.price || '') : '';
+    const valUsdt = (g.currency === 'USDT' && (g.priceSet || g.price)) ? g.price : '';
+    const valSoles = (g.currency === 'S/.' && (g.priceSet || g.price)) ? g.price : '';
     const pfColor = getPlatformColor(g.platform);
 
     html += `<div class="price-row">
@@ -723,12 +748,13 @@ function renderPricingList() {
 function updateGroupPrice(key, val, currency, el) {
   const row = el.closest('.price-input-wrap');
   const inputs = row.querySelectorAll('.price-input');
-  if (!val.trim() || parseFloat(val) === 0) {
-    if (groups[key].currency === currency) groups[key].price = 0;
+  if (!val.trim()) {
+    if (groups[key].currency === currency) { groups[key].price = 0; groups[key].priceSet = false; }
     return;
   }
   groups[key].price = parseFloat(val) || 0;
   groups[key].currency = currency;
+  groups[key].priceSet = true;
   inputs.forEach(input => { if (input !== el) input.value = ''; });
 }
 
@@ -759,9 +785,9 @@ function renderCustomRows(){
       <div class="price-input-wrap">
         <input type="number" class="price-input" style="width:70px;" min="0" value="${row.count || ''}" placeholder="Cant." oninput="customRows[i].count = parseInt(this.value)||0">
         <span class="currency-lbl-inline">und</span>
-        <input type="number" class="price-input" id="cRowUsdt-${i}" min="0" step="0.01" value="${row.currency==='USDT'&&row.price?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'USDT')">
+        <input type="number" class="price-input" id="cRowUsdt-${i}" min="0" step="0.01" value="${(row.currency==='USDT'&&(row.priceSet||row.price))?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'USDT')">
         <span class="currency-lbl-inline">USDT</span>
-        <input type="number" class="price-input" id="cRowSoles-${i}" min="0" step="0.01" value="${row.currency==='S/.'&&row.price?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'S/.')">
+        <input type="number" class="price-input" id="cRowSoles-${i}" min="0" step="0.01" value="${(row.currency==='S/.'&&(row.priceSet||row.price))?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'S/.')">
         <span class="currency-lbl-inline">S/.</span>
       </div>
     </div>`;
@@ -772,6 +798,7 @@ function renderCustomRows(){
 function updateCustomRowPrice(i, val, currency){
   customRows[i].price = parseFloat(val) || 0;
   customRows[i].currency = currency;
+  customRows[i].priceSet = val.trim() !== '';
   if(currency === 'USDT') document.getElementById('cRowSoles-'+i).value = '';
   else document.getElementById('cRowUsdt-'+i).value = '';
 }
@@ -921,27 +948,39 @@ function renderPayments(){
       return a ? !a.renewedPaid : false;
     }).length;
     const total = (g.price * dynamicCount);
-    
+
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
       <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
       <td>${g.observation}</td>
       <td><span class="pf-dot" style="background:${getPlatformColor(g.platform)}; color:${getPlatformColor(g.platform)};"></span>${g.platform}</td>
       <td>${dynamicCount}</td>
-      <td>${g.currency === 'S/.' ? 'S/. ' : ''}${g.price.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
-      <td>${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</td>
+      <td>
+        <div class="cost-cell">
+          <input type="number" class="price-input price-edit" min="0" step="0.01" value="${g.price}" oninput="updateGroupUnitCost('${k}', this.value)">
+          <span class="currency-lbl-inline">${g.currency}</span>
+          <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
+        </div>
+      </td>
+      <td data-role="total"><span class="total-chip">${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</span></td>
       <td><button class="btn-mini" onclick="copyProviderMessage('${k}')">📋 Copiar Mensaje</button></td>
     </tr>`;
   });
 
   if (youtubeRow.count > 0) {
     const ytTotal = youtubeRow.price * youtubeRow.count;
-    html += `<tr class="${youtubeRow.paid?'paid':''}">
+    html += `<tr class="${youtubeRow.paid?'paid':''}" data-row-type="youtube">
       <td><input type="checkbox" ${youtubeRow.paid?'checked':''} onchange="youtubeRow.paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
       <td><span style="color:var(--brand-2)">Stock Nuevo</span></td>
       <td><span class="pf-dot" style="background:${getPlatformColor('YouTube Premium')}; color:${getPlatformColor('YouTube Premium')};"></span>YouTube (Manual)</td>
       <td>${youtubeRow.count}</td>
-      <td>${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${youtubeRow.price.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</td>
-      <td>${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${ytTotal.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</td>
+      <td>
+        <div class="cost-cell">
+          <input type="number" class="price-input price-edit" min="0" step="0.01" value="${youtubeRow.price}" oninput="updateYoutubeUnitCost(this.value)">
+          <span class="currency-lbl-inline">${youtubeRow.currency}</span>
+          <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
+        </div>
+      </td>
+      <td data-role="total"><span class="total-chip">${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${ytTotal.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</span></td>
       <td><span style="color:var(--faint); font-size:11px;">Manual</span></td>
     </tr>`;
   }
@@ -949,13 +988,19 @@ function renderPayments(){
   customRows.forEach((row, idx) => {
     if (row.count > 0 && row.platform.trim()) {
       const rowTotal = row.price * row.count;
-      html += `<tr class="${row.paid?'paid':''}">
+      html += `<tr class="${row.paid?'paid':''}" data-row-type="custom" data-idx="${idx}">
         <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
         <td><span style="color:var(--brand-2)">Stock Nuevo</span></td>
         <td>${row.platform}</td>
         <td>${row.count}</td>
-        <td>${row.currency === 'S/.' ? 'S/. ' : ''}${row.price.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</td>
-        <td>${row.currency === 'S/.' ? 'S/. ' : ''}${rowTotal.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</td>
+        <td>
+          <div class="cost-cell">
+            <input type="number" class="price-input price-edit" min="0" step="0.01" value="${row.price}" oninput="updateCustomRowUnitCost(${idx}, this.value)">
+            <span class="currency-lbl-inline">${row.currency}</span>
+            <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
+          </div>
+        </td>
+        <td data-role="total"><span class="total-chip">${row.currency === 'S/.' ? 'S/. ' : ''}${rowTotal.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</span></td>
         <td><span style="color:var(--faint); font-size:11px;">Manual</span></td>
       </tr>`;
     }
@@ -963,6 +1008,59 @@ function renderPayments(){
 
   html += `</tbody></table></div>`;
   document.getElementById('paymentsWrap').innerHTML = html;
+  updateTotals();
+}
+
+function formatMoney(amount, currency){
+  return `${currency === 'S/.' ? 'S/. ' : ''}${amount.toFixed(2)} ${currency === 'USDT' ? 'USDT' : ''}`;
+}
+
+function copyRowPrice(btn){
+  const cell = btn.closest('.cost-cell');
+  const input = cell ? cell.querySelector('input') : null;
+  if(!input){ showToast('No se pudo copiar el precio'); return; }
+  const val = parseFloat(input.value) || 0;
+  executeCopy(val.toFixed(2), '¡Precio copiado (solo número)! ✓');
+}
+
+function updateGroupUnitCost(key, val){
+  const g = groups[key]; if(!g) return;
+  g.price = parseFloat(val) || 0;
+  g.priceSet = true;
+  const tr = document.querySelector(`tr[data-key="${CSS.escape(key)}"]`);
+  if(tr){
+    const dynamicCount = g.accountIds.filter(id => {
+      const a = accounts.find(acc => acc.id === id);
+      return a ? !a.renewedPaid : false;
+    }).length;
+    const total = g.price * dynamicCount;
+    const totalCell = tr.querySelector('[data-role="total"] .total-chip');
+    if(totalCell) totalCell.textContent = formatMoney(total, g.currency);
+  }
+  updateTotals();
+}
+
+function updateYoutubeUnitCost(val){
+  youtubeRow.price = parseFloat(val) || 0;
+  const tr = document.querySelector('tr[data-row-type="youtube"]');
+  if(tr){
+    const total = youtubeRow.price * youtubeRow.count;
+    const totalCell = tr.querySelector('[data-role="total"] .total-chip');
+    if(totalCell) totalCell.textContent = formatMoney(total, youtubeRow.currency);
+  }
+  updateTotals();
+}
+
+function updateCustomRowUnitCost(idx, val){
+  const row = customRows[idx]; if(!row) return;
+  row.price = parseFloat(val) || 0;
+  row.priceSet = true;
+  const tr = document.querySelector(`tr[data-row-type="custom"][data-idx="${idx}"]`);
+  if(tr){
+    const total = row.price * row.count;
+    const totalCell = tr.querySelector('[data-role="total"] .total-chip');
+    if(totalCell) totalCell.textContent = formatMoney(total, row.currency);
+  }
   updateTotals();
 }
 
@@ -1018,7 +1116,7 @@ function updateTotals(){
 function reset(){
   accounts = []; groups = {};
   youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
-  customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, currency: 'USDT', paid: false }));
+  customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false }));
   document.getElementById('rawInput').value = '';
   document.getElementById('ytManualCount').value = '';
   document.getElementById('ytManualPriceUSDT').value = '';
