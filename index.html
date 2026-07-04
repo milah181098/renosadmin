@@ -356,6 +356,41 @@
     display:flex;align-items:center;justify-content:space-between;gap:14px;
     padding:12px 4px;border-bottom:1px solid var(--border-soft);flex-wrap:wrap;
   }
+  .price-row.provider-price-row{
+    display:flex; flex-direction:column; align-items:stretch; gap:10px;
+    padding:14px 12px; border:1px solid var(--border); border-radius:10px;
+    margin-bottom:10px; background:rgba(255,255,255,0.012);
+  }
+  .price-row-top{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  .provider-pay-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding-top:10px; border-top:1px dashed var(--border);
+  }
+  .mini-label{
+    font-size:10.5px; color:var(--faint); text-transform:uppercase; letter-spacing:.05em;
+    font-family:var(--font-mono); white-space:nowrap;
+  }
+  .provider-select, .payment-method-input{
+    background:var(--panel3); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:7px 9px; font-size:12.5px; font-family:var(--font-body);
+  }
+  .provider-select{min-width:170px; cursor:pointer;}
+  .payment-method-input{flex:1; min-width:160px; font-family:var(--font-mono);}
+  .provider-select:focus, .payment-method-input:focus{outline:none; border-color:var(--brand-2); box-shadow:0 0 0 3px rgba(29,219,139,0.12);}
+  .provider-select-final{
+    width:100%; background:var(--panel3); border:1px solid var(--border); color:var(--text);
+    border-radius:7px; padding:6px 8px; font-size:12px; font-family:var(--font-body); cursor:pointer;
+  }
+  .payment-method-hint{
+    font-size:11px; color:var(--brand-2); font-family:var(--font-mono);
+    margin-top:5px; word-break:break-all;
+  }
+  .obs-original{
+    font-size:10px; color:var(--faint); font-family:var(--font-mono);
+    margin-top:4px;
+  }
   .price-label{font-size:13px;min-width:200px; display:flex; align-items:center;}
   .price-label .cnt{color:var(--faint);font-size:11px; font-family:var(--font-mono); margin-left:6px;}
   .price-input-wrap {display:flex;align-items:center;gap:8px;}
@@ -473,15 +508,23 @@
   <div id="pricingWrap"></div>
   
   <!-- Formulario Fijo de YouTube Manual -->
-  <div class="price-row" style="border-top: 2px dashed var(--border); margin-top: 24px; padding-top: 16px;">
-    <div class="price-label" style="font-weight:700; color:var(--brand-2);">YouTube <span class="badge" style="margin-left:8px;">Manual / Stock</span></div>
-    <div class="price-input-wrap">
-      <input type="number" id="ytManualCount" class="price-input" style="width:75px;" min="0" placeholder="Cant." oninput="updateYoutubeManual()">
-      <span class="currency-lbl-inline">und</span>
-      <input type="number" id="ytManualPriceUSDT" class="price-input" min="0" step="0.01" placeholder="0.00" oninput="updateYoutubeManualPrice('USDT')">
-      <span class="currency-lbl-inline">USDT</span>
-      <input type="number" id="ytManualPriceSoles" class="price-input" min="0" step="0.01" placeholder="0.00" oninput="updateYoutubeManualPrice('S/.')">
-      <span class="currency-lbl-inline">S/.</span>
+  <div class="price-row provider-price-row" data-provider-key="youtube" style="border-top: 2px dashed var(--border); margin-top: 24px; padding-top: 16px;">
+    <div class="price-row-top">
+      <div class="price-label" style="font-weight:700; color:var(--brand-2);">YouTube <span class="badge" style="margin-left:8px;">Manual / Stock</span></div>
+      <div class="price-input-wrap">
+        <input type="number" id="ytManualCount" class="price-input" style="width:75px;" min="0" placeholder="Cant." oninput="updateYoutubeManual()">
+        <span class="currency-lbl-inline">und</span>
+        <input type="number" id="ytManualPriceUSDT" class="price-input" min="0" step="0.01" placeholder="0.00" oninput="updateYoutubeManualPrice('USDT')">
+        <span class="currency-lbl-inline">USDT</span>
+        <input type="number" id="ytManualPriceSoles" class="price-input" min="0" step="0.01" placeholder="0.00" oninput="updateYoutubeManualPrice('S/.')">
+        <span class="currency-lbl-inline">S/.</span>
+      </div>
+    </div>
+    <div class="provider-pay-row">
+      <span class="mini-label">Proveedor de pago</span>
+      <select class="provider-select" id="ytProviderSelect" onchange="updateProviderSelection('youtube', null, this.value)"></select>
+      <span class="mini-label">Método de pago</span>
+      <input type="text" class="payment-method-input" id="ytPaymentMethodInput" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('youtube', null, this.value)">
     </div>
   </div>
 
@@ -524,8 +567,8 @@
 let accounts = []; 
 let groups = {};
 
-let youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
-let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false }));
+let youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' };
+let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' }));
 
 const PLATFORM_PATTERNS = [
   {name:'Prime Video', re:/prime\s*video|amazon\s*prime/i},
@@ -564,6 +607,118 @@ const PLATFORM_COLORS = {
   'Otros': '#E8197B'
 };
 function getPlatformColor(name){ return PLATFORM_COLORS[name] || '#E8197B'; }
+
+/* ── Métodos de pago por proveedor (preconfigurado, editable en Paso 3) ── */
+const PROVIDER_PAYMENTS = {
+  'Netfly': '17692162',
+  'Zona': 'nndez1234@gmail.com',
+  'Ecuacine': '18132123',
+  'Woostore': '213336922',
+  'Carrito': '1011770591',
+  'Movistar': '941893612',
+  'Michi': '976132716',
+  'Allcheap': 'Mr_nike45@hotmail.com',
+  'Alex correos': '281736466',
+  'Julio activar yt': '960425243',
+  'Qaway': 'astri_3@hotmail.com',
+  'Imperio': '585003592',
+  'Boxtmail': '917494877',
+  'Streamplay': '904013433',
+  'Pablo': 'Thedrez61@gmail.com',
+  'DAMI': '412213261',
+  'BITFLIX': '1169072590',
+  'Johen': '355980472',
+  'Kurozaky correos': '38436512',
+  'Luis borges': '353963220',
+  'José torres': 'Binance josearmandt63@gmail.com',
+  'BLIX': 'blixprime@gmail.com',
+  'CARLIN': '449422611',
+  'ANDREINA': '471531201',
+  'IPTV Premium': '46793653',
+  'Ederson': 'ederame8@gmail.com',
+  'YPP': '0xB9E14635C49eA9B119fA9c8eA19bACb221F8CB64',
+  'YPPest': '0xB9E14635C49eA9B119fA9c8eA19bACb221F8CB64',
+  'Sofi correos': '1248416753'
+};
+const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
+
+function findProviderMatch(name){
+  if(!name) return '';
+  const norm = name.trim().toLowerCase();
+  const hit = PROVIDER_NAMES.find(p => p.toLowerCase() === norm);
+  return hit || '';
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function buildProviderOptions(selected){
+  let opts = `<option value="">— Sin asignar —</option>`;
+  let matched = false;
+  PROVIDER_NAMES.forEach(p=>{
+    const isSel = (p === selected);
+    if(isSel) matched = true;
+    opts += `<option value="${escapeHtml(p)}" ${isSel?'selected':''}>${escapeHtml(p)}</option>`;
+  });
+  if(selected && !matched){
+    opts += `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)} (no encontrado)</option>`;
+  }
+  return opts;
+}
+
+/* Entidad genérica: 'group' usa key de texto, 'youtube' no usa key, 'custom' usa índice numérico */
+function getPayEntity(kind, key){
+  if(kind==='group') return groups[key];
+  if(kind==='youtube') return youtubeRow;
+  if(kind==='custom') return customRows[key];
+  return null;
+}
+
+function providerStep3Selector(kind, key){
+  const id = kind==='youtube' ? 'youtube' : `${kind}-${key}`;
+  return `.provider-price-row[data-provider-key="${id}"]`;
+}
+function providerStep4Selector(kind, key){
+  if(kind==='group') return `tr[data-key="${CSS.escape(String(key))}"]`;
+  if(kind==='youtube') return `tr[data-row-type="youtube"]`;
+  return `tr[data-row-type="custom"][data-idx="${key}"]`;
+}
+
+function syncProviderControls(kind, key, providerName, paymentMethod){
+  const row3 = document.querySelector(providerStep3Selector(kind, key));
+  if(row3){
+    const sel = row3.querySelector('.provider-select');
+    if(sel) sel.value = providerName;
+    const inp = row3.querySelector('.payment-method-input');
+    if(inp) inp.value = paymentMethod;
+  }
+  const row4 = document.querySelector(providerStep4Selector(kind, key));
+  if(row4){
+    const sel = row4.querySelector('.provider-select-final');
+    if(sel) sel.value = providerName;
+    const hint = row4.querySelector('.payment-method-hint');
+    if(hint) hint.textContent = paymentMethod || 'Sin método asignado';
+  }
+}
+
+function updateProviderSelection(kind, key, providerName){
+  const ent = getPayEntity(kind, key); if(!ent) return;
+  ent.providerName = providerName;
+  ent.paymentMethod = PROVIDER_PAYMENTS[providerName] || '';
+  syncProviderControls(kind, key, providerName, ent.paymentMethod);
+}
+
+function updatePaymentMethodText(kind, key, val){
+  const ent = getPayEntity(kind, key); if(!ent) return;
+  ent.paymentMethod = val;
+}
+
+function copyPaymentMethod(kind, key){
+  const ent = getPayEntity(kind, key); if(!ent) return;
+  if(!ent.paymentMethod || !ent.paymentMethod.trim()){ showToast('Este proveedor no tiene método de pago asignado'); return; }
+  executeCopy(ent.paymentMethod, '¡Método de pago copiado! ✓');
+}
 
 const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
 const DATE_RE = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
@@ -715,7 +870,9 @@ function goPricing(){
   accounts.forEach(a=>{
     const k = groupKey(a);
     if(!groups[k]) {
-      groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, priceSet:false, currency:'USDT', paid:false, accountIds:[]};
+      const matched = findProviderMatch(a.observation);
+      groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, priceSet:false, currency:'USDT', paid:false, accountIds:[],
+        providerName: matched, paymentMethod: matched ? PROVIDER_PAYMENTS[matched] : ''};
     }
     groups[k].count++;
     groups[k].accountIds.push(a.id);
@@ -732,13 +889,23 @@ function renderPricingList() {
     const valSoles = (g.currency === 'S/.' && (g.priceSet || g.price)) ? g.price : '';
     const pfColor = getPlatformColor(g.platform);
 
-    html += `<div class="price-row">
-      <div class="price-label"><span class="pf-dot" style="background:${pfColor}; color:${pfColor};"></span>${g.platform} <span style="color:var(--brand-2); margin-left:4px;">(${g.observation})</span> <span class="cnt">(${g.count} und)</span></div>
-      <div class="price-input-wrap">
-        <input type="number" class="price-input" min="0" step="0.01" value="${valUsdt}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'USDT', this)">
-        <span class="currency-lbl-inline">USDT</span>
-        <input type="number" class="price-input" min="0" step="0.01" value="${valSoles}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'S/.', this)">
-        <span class="currency-lbl-inline">S/.</span>
+    html += `<div class="price-row provider-price-row" data-provider-key="group-${k}">
+      <div class="price-row-top">
+        <div class="price-label"><span class="pf-dot" style="background:${pfColor}; color:${pfColor};"></span>${g.platform} <span style="color:var(--brand-2); margin-left:4px;">(${g.observation})</span> <span class="cnt">(${g.count} und)</span></div>
+        <div class="price-input-wrap">
+          <input type="number" class="price-input" min="0" step="0.01" value="${valUsdt}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'USDT', this)">
+          <span class="currency-lbl-inline">USDT</span>
+          <input type="number" class="price-input" min="0" step="0.01" value="${valSoles}" placeholder="0.00" oninput="updateGroupPrice('${k}', this.value, 'S/.', this)">
+          <span class="currency-lbl-inline">S/.</span>
+        </div>
+      </div>
+      <div class="provider-pay-row">
+        <span class="mini-label">Proveedor de pago</span>
+        <select class="provider-select" onchange="updateProviderSelection('group', '${k}', this.value)">
+          ${buildProviderOptions(g.providerName)}
+        </select>
+        <span class="mini-label">Método de pago</span>
+        <input type="text" class="payment-method-input" value="${escapeHtml(g.paymentMethod)}" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('group', '${k}', this.value)">
       </div>
     </div>`;
   });
@@ -778,7 +945,8 @@ function updateYoutubeManualPrice(currency){
 function renderCustomRows(){
   let html = '';
   customRows.forEach((row, i)=>{
-    html += `<div class="price-row">
+    html += `<div class="price-row provider-price-row" data-provider-key="custom-${i}">
+    <div class="price-row-top">
       <div class="price-input-wrap" style="flex:1;">
         <input type="text" class="price-input" style="width:100%;" value="${row.platform}" placeholder="Nombre de Plataforma Extra ${i+1}" oninput="customRows[i].platform = this.value">
       </div>
@@ -790,6 +958,15 @@ function renderCustomRows(){
         <input type="number" class="price-input" id="cRowSoles-${i}" min="0" step="0.01" value="${(row.currency==='S/.'&&(row.priceSet||row.price))?row.price:''}" placeholder="Precio u." oninput="updateCustomRowPrice(${i}, this.value, 'S/.')">
         <span class="currency-lbl-inline">S/.</span>
       </div>
+    </div>
+    <div class="provider-pay-row">
+      <span class="mini-label">Proveedor de pago</span>
+      <select class="provider-select" onchange="updateProviderSelection('custom', ${i}, this.value)">
+        ${buildProviderOptions(row.providerName)}
+      </select>
+      <span class="mini-label">Método de pago</span>
+      <input type="text" class="payment-method-input" value="${escapeHtml(row.paymentMethod)}" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('custom', ${i}, this.value)">
+    </div>
     </div>`;
   });
   document.getElementById('customRowsWrap').innerHTML = html;
@@ -951,7 +1128,13 @@ function renderPayments(){
 
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
       <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
-      <td>${g.observation}</td>
+      <td>
+        <select class="provider-select-final" onchange="updateProviderSelection('group', '${k}', this.value)">
+          ${buildProviderOptions(g.providerName)}
+        </select>
+        <div class="obs-original">detectado: ${g.observation}</div>
+        <div class="payment-method-hint">${escapeHtml(g.paymentMethod) || 'Sin método asignado'}</div>
+      </td>
       <td><span class="pf-dot" style="background:${getPlatformColor(g.platform)}; color:${getPlatformColor(g.platform)};"></span>${g.platform}</td>
       <td>${dynamicCount}</td>
       <td>
@@ -962,7 +1145,12 @@ function renderPayments(){
         </div>
       </td>
       <td data-role="total"><span class="total-chip">${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</span></td>
-      <td><button class="btn-mini" onclick="copyProviderMessage('${k}')">📋 Copiar Mensaje</button></td>
+      <td>
+        <div class="col-actions" style="margin-bottom:0;">
+          <button class="btn-mini" onclick="copyProviderMessage('${k}')">📋 Mensaje</button>
+          <button class="btn-mini" onclick="copyPaymentMethod('group','${k}')">💳 Método</button>
+        </div>
+      </td>
     </tr>`;
   });
 
@@ -970,7 +1158,13 @@ function renderPayments(){
     const ytTotal = youtubeRow.price * youtubeRow.count;
     html += `<tr class="${youtubeRow.paid?'paid':''}" data-row-type="youtube">
       <td><input type="checkbox" ${youtubeRow.paid?'checked':''} onchange="youtubeRow.paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
-      <td><span style="color:var(--brand-2)">Stock Nuevo</span></td>
+      <td>
+        <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
+        <select class="provider-select-final" onchange="updateProviderSelection('youtube', null, this.value)">
+          ${buildProviderOptions(youtubeRow.providerName)}
+        </select>
+        <div class="payment-method-hint">${escapeHtml(youtubeRow.paymentMethod) || 'Sin método asignado'}</div>
+      </td>
       <td><span class="pf-dot" style="background:${getPlatformColor('YouTube Premium')}; color:${getPlatformColor('YouTube Premium')};"></span>YouTube (Manual)</td>
       <td>${youtubeRow.count}</td>
       <td>
@@ -981,7 +1175,11 @@ function renderPayments(){
         </div>
       </td>
       <td data-role="total"><span class="total-chip">${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${ytTotal.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</span></td>
-      <td><span style="color:var(--faint); font-size:11px;">Manual</span></td>
+      <td>
+        <div class="col-actions" style="margin-bottom:0;">
+          <button class="btn-mini" onclick="copyPaymentMethod('youtube', null)">💳 Método</button>
+        </div>
+      </td>
     </tr>`;
   }
 
@@ -990,7 +1188,13 @@ function renderPayments(){
       const rowTotal = row.price * row.count;
       html += `<tr class="${row.paid?'paid':''}" data-row-type="custom" data-idx="${idx}">
         <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
-        <td><span style="color:var(--brand-2)">Stock Nuevo</span></td>
+        <td>
+          <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
+          <select class="provider-select-final" onchange="updateProviderSelection('custom', ${idx}, this.value)">
+            ${buildProviderOptions(row.providerName)}
+          </select>
+          <div class="payment-method-hint">${escapeHtml(row.paymentMethod) || 'Sin método asignado'}</div>
+        </td>
         <td>${row.platform}</td>
         <td>${row.count}</td>
         <td>
@@ -1001,7 +1205,11 @@ function renderPayments(){
           </div>
         </td>
         <td data-role="total"><span class="total-chip">${row.currency === 'S/.' ? 'S/. ' : ''}${rowTotal.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</span></td>
-        <td><span style="color:var(--faint); font-size:11px;">Manual</span></td>
+        <td>
+          <div class="col-actions" style="margin-bottom:0;">
+            <button class="btn-mini" onclick="copyPaymentMethod('custom', ${idx})">💳 Método</button>
+          </div>
+        </td>
       </tr>`;
     }
   });
@@ -1115,16 +1323,19 @@ function updateTotals(){
 
 function reset(){
   accounts = []; groups = {};
-  youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false };
-  customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false }));
+  youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' };
+  customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' }));
   document.getElementById('rawInput').value = '';
   document.getElementById('ytManualCount').value = '';
   document.getElementById('ytManualPriceUSDT').value = '';
   document.getElementById('ytManualPriceSoles').value = '';
+  document.getElementById('ytProviderSelect').innerHTML = buildProviderOptions('');
+  document.getElementById('ytPaymentMethodInput').value = '';
   document.getElementById('paymentsCard').style.display='none';
   goStep(1);
 }
 
+document.getElementById('ytProviderSelect').innerHTML = buildProviderOptions('');
 goStep(1);
 </script>
 </body>
