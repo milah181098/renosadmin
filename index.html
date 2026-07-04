@@ -387,6 +387,24 @@
     font-size:11px; color:var(--brand-2); font-family:var(--font-mono);
     margin-top:5px; word-break:break-all;
   }
+  .payment-method-hint.no-match{ color:var(--faint); }
+
+  /* Búsqueda rápida de método de pago (Paso 1) */
+  .quick-lookup{
+    margin-top:22px; padding:16px; border:1px dashed var(--border);
+    border-radius:var(--radius-sm); background:rgba(255,255,255,0.012);
+  }
+  .quick-lookup-title{
+    font-size:12.5px; font-weight:600; color:var(--brand-2);
+    margin-bottom:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .quick-lookup-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .quick-lookup-row .provider-select{min-width:220px; flex:1;}
+  .quick-lookup-result{
+    margin-top:0; font-size:13px; flex:1; min-width:180px;
+  }
   .obs-original{
     font-size:10px; color:var(--faint); font-family:var(--font-mono);
     margin-top:4px;
@@ -487,7 +505,18 @@
   <div class="row">
     <button class="btn-primary" onclick="organizar()">Organizar Todo</button>
   </div>
+
+  <div class="quick-lookup">
+    <div class="quick-lookup-title">🔎 Búsqueda rápida de método de pago <span class="badge">independiente, no requiere datos arriba</span></div>
+    <div class="quick-lookup-row">
+      <input type="text" id="quickProviderInput" class="provider-select" list="providerNamesList" placeholder="Escribe el nombre del proveedor..." oninput="quickLookupProvider(this.value)">
+      <span id="quickLookupResult" class="payment-method-hint quick-lookup-result">—</span>
+      <button class="btn-mini" onclick="copyQuickLookup()">💳 Copiar</button>
+    </div>
+  </div>
 </div>
+
+<datalist id="providerNamesList"></datalist>
 
 <!-- STEP 2 -->
 <div class="card" id="step2" style="display:none;">
@@ -522,7 +551,7 @@
     </div>
     <div class="provider-pay-row">
       <span class="mini-label">Proveedor de pago</span>
-      <select class="provider-select" id="ytProviderSelect" onchange="updateProviderSelection('youtube', null, this.value)"></select>
+      <input type="text" class="provider-select" id="ytProviderInput" list="providerNamesList" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('youtube', null, this.value)">
       <span class="mini-label">Método de pago</span>
       <input type="text" class="payment-method-input" id="ytPaymentMethodInput" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('youtube', null, this.value)">
     </div>
@@ -653,18 +682,8 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function buildProviderOptions(selected){
-  let opts = `<option value="">— Sin asignar —</option>`;
-  let matched = false;
-  PROVIDER_NAMES.forEach(p=>{
-    const isSel = (p === selected);
-    if(isSel) matched = true;
-    opts += `<option value="${escapeHtml(p)}" ${isSel?'selected':''}>${escapeHtml(p)}</option>`;
-  });
-  if(selected && !matched){
-    opts += `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)} (no encontrado)</option>`;
-  }
-  return opts;
+function buildProviderDatalistOptions(){
+  return PROVIDER_NAMES.map(p => `<option value="${escapeHtml(p)}">`).join('');
 }
 
 /* Entidad genérica: 'group' usa key de texto, 'youtube' no usa key, 'custom' usa índice numérico */
@@ -709,6 +728,21 @@ function updateProviderSelection(kind, key, providerName){
   syncProviderControls(kind, key, providerName, ent.paymentMethod);
 }
 
+/* Se dispara mientras se escribe en el campo de proveedor (autocompletado tipo buscador).
+   Si lo escrito coincide exactamente (sin distinguir mayúsculas) con un proveedor conocido,
+   se confirma la selección y se autocompleta el método de pago. Si aún no coincide (se está
+   escribiendo), solo se guarda el texto sin borrar el método de pago ya asignado. */
+function onProviderTextInput(kind, key, typedValue){
+  const match = findProviderMatch(typedValue);
+  if(match){
+    updateProviderSelection(kind, key, match);
+    return;
+  }
+  const ent = getPayEntity(kind, key); if(!ent) return;
+  ent.providerName = typedValue;
+  syncProviderControls(kind, key, typedValue, ent.paymentMethod);
+}
+
 function updatePaymentMethodText(kind, key, val){
   const ent = getPayEntity(kind, key); if(!ent) return;
   ent.paymentMethod = val;
@@ -718,6 +752,26 @@ function copyPaymentMethod(kind, key){
   const ent = getPayEntity(kind, key); if(!ent) return;
   if(!ent.paymentMethod || !ent.paymentMethod.trim()){ showToast('Este proveedor no tiene método de pago asignado'); return; }
   executeCopy(ent.paymentMethod, '¡Método de pago copiado! ✓');
+}
+
+/* Búsqueda rápida e independiente de método de pago (Paso 1) — no depende de tener cuentas cargadas */
+let quickLookupMethod = '';
+function quickLookupProvider(typed){
+  const resultEl = document.getElementById('quickLookupResult');
+  const match = findProviderMatch(typed);
+  if(match){
+    quickLookupMethod = PROVIDER_PAYMENTS[match];
+    resultEl.textContent = `${match}: ${quickLookupMethod}`;
+    resultEl.classList.remove('no-match');
+  } else {
+    quickLookupMethod = '';
+    resultEl.textContent = typed.trim() ? 'Sin coincidencia con la lista de proveedores' : '—';
+    resultEl.classList.add('no-match');
+  }
+}
+function copyQuickLookup(){
+  if(!quickLookupMethod){ showToast('Escribe (o elige) un proveedor válido primero'); return; }
+  executeCopy(quickLookupMethod, '¡Método de pago copiado! ✓');
 }
 
 const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
@@ -902,9 +956,7 @@ function renderPricingList() {
       </div>
       <div class="provider-pay-row">
         <span class="mini-label">Proveedor de pago</span>
-        <select class="provider-select" onchange="updateProviderSelection('group', '${k}', this.value)">
-          ${buildProviderOptions(g.providerName)}
-        </select>
+        <input type="text" class="provider-select" list="providerNamesList" value="${escapeHtml(g.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('group', '${k}', this.value)">
         <span class="mini-label">Método de pago</span>
         <input type="text" class="payment-method-input" value="${escapeHtml(g.paymentMethod)}" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('group', '${k}', this.value)">
       </div>
@@ -962,9 +1014,7 @@ function renderCustomRows(){
     </div>
     <div class="provider-pay-row">
       <span class="mini-label">Proveedor de pago</span>
-      <select class="provider-select" onchange="updateProviderSelection('custom', ${i}, this.value)">
-        ${buildProviderOptions(row.providerName)}
-      </select>
+      <input type="text" class="provider-select" list="providerNamesList" value="${escapeHtml(row.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('custom', ${i}, this.value)">
       <span class="mini-label">Método de pago</span>
       <input type="text" class="payment-method-input" value="${escapeHtml(row.paymentMethod)}" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('custom', ${i}, this.value)">
     </div>
@@ -1130,9 +1180,7 @@ function renderPayments(){
     html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
       <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
       <td>
-        <select class="provider-select-final" onchange="updateProviderSelection('group', '${k}', this.value)">
-          ${buildProviderOptions(g.providerName)}
-        </select>
+        <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(g.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('group', '${k}', this.value)">
         <div class="obs-original">detectado: ${g.observation}</div>
         <div class="payment-method-hint">${escapeHtml(g.paymentMethod) || 'Sin método asignado'}</div>
       </td>
@@ -1161,9 +1209,7 @@ function renderPayments(){
       <td><input type="checkbox" ${youtubeRow.paid?'checked':''} onchange="youtubeRow.paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
       <td>
         <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
-        <select class="provider-select-final" onchange="updateProviderSelection('youtube', null, this.value)">
-          ${buildProviderOptions(youtubeRow.providerName)}
-        </select>
+        <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(youtubeRow.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('youtube', null, this.value)">
         <div class="payment-method-hint">${escapeHtml(youtubeRow.paymentMethod) || 'Sin método asignado'}</div>
       </td>
       <td><span class="pf-dot" style="background:${getPlatformColor('YouTube Premium')}; color:${getPlatformColor('YouTube Premium')};"></span>YouTube (Manual)</td>
@@ -1191,9 +1237,7 @@ function renderPayments(){
         <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
         <td>
           <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
-          <select class="provider-select-final" onchange="updateProviderSelection('custom', ${idx}, this.value)">
-            ${buildProviderOptions(row.providerName)}
-          </select>
+          <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(row.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('custom', ${idx}, this.value)">
           <div class="payment-method-hint">${escapeHtml(row.paymentMethod) || 'Sin método asignado'}</div>
         </td>
         <td>${row.platform}</td>
@@ -1330,13 +1374,13 @@ function reset(){
   document.getElementById('ytManualCount').value = '';
   document.getElementById('ytManualPriceUSDT').value = '';
   document.getElementById('ytManualPriceSoles').value = '';
-  document.getElementById('ytProviderSelect').innerHTML = buildProviderOptions('');
+  document.getElementById('ytProviderInput').value = '';
   document.getElementById('ytPaymentMethodInput').value = '';
   document.getElementById('paymentsCard').style.display='none';
   goStep(1);
 }
 
-document.getElementById('ytProviderSelect').innerHTML = buildProviderOptions('');
+document.getElementById('providerNamesList').innerHTML = buildProviderDatalistOptions();
 goStep(1);
 </script>
 </body>
