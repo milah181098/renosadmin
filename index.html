@@ -18,17 +18,14 @@
     --panel3:#1d1f2f;
     --border:#262838;
     --border-soft:rgba(255,255,255,0.06);
-
     /* Brand (Wave Play signature — magenta + green, marca oficial) */
     --brand:#e8197b;
     --brand-2:#ff5fae;
     --brand-grad: linear-gradient(120deg, #ff4fa3 0%, #e8197b 60%, #b8115f 100%);
-
     /* Text */
     --text:#f2f3fb;
     --muted:#8b8fa3;
     --faint:#565a70;
-
     /* Status */
     --danger:#ff4d6d;
     --danger-bg:rgba(255,77,109,0.10);
@@ -36,19 +33,15 @@
     --ok-bg:rgba(29,219,139,0.10);
     --warn:#ffb648;
     --warn-bg:rgba(255,182,72,0.10);
-
     --radius:16px;
     --radius-sm:10px;
     --font-display:'Space Grotesk', system-ui, sans-serif;
     --font-body:'Inter', system-ui, sans-serif;
     --font-mono:'JetBrains Mono', ui-monospace, monospace;
   }
-
   *{box-sizing:border-box;}
   ::selection{background:var(--brand); color:#08090f;}
-
   html{scroll-behavior:smooth;}
-
   body{
     margin:0;
     min-height:100vh;
@@ -62,12 +55,10 @@
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
   }
-
   .app-shell{
     max-width:1180px;
     margin:0 auto;
   }
-
   /* ---------- Header ---------- */
   .app-header{
     display:flex;
@@ -100,7 +91,6 @@
   @media (prefers-reduced-motion: reduce){
     .signal-mark span{animation:none; opacity:.9;}
   }
-
   h1{
     font-family:var(--font-display);
     font-size:24px;
@@ -121,7 +111,6 @@
     font-family:var(--font-mono);
     letter-spacing:0.01em;
   }
-
   h2{
     font-family:var(--font-display);
     font-size:16px;
@@ -139,7 +128,6 @@
     background:var(--brand-grad);
     flex-shrink:0;
   }
-
   /* ---------- Stepper ---------- */
   .steps{
     display:flex;
@@ -169,7 +157,6 @@
   .step-pill.done{
     color:var(--brand-2);
   }
-
   /* ---------- Cards ---------- */
   .card{
     position:relative;
@@ -185,7 +172,6 @@
     position:absolute; top:0; left:24px; right:24px; height:1px;
     background:linear-gradient(90deg, transparent, rgba(232,25,123,0.5), transparent);
   }
-
   textarea{
     width:100%;
     min-height:220px;
@@ -205,7 +191,6 @@
     box-shadow:0 0 0 3px rgba(232,25,123,0.15);
   }
   textarea::placeholder{color:var(--faint);}
-
   button{
     cursor:pointer;
     border:none;
@@ -223,14 +208,12 @@
   }
   .btn-primary:hover{transform:translateY(-1px); box-shadow:0 10px 26px -6px rgba(232,25,123,0.75);}
   .btn-primary:active{transform:translateY(0);}
-
   .btn-ghost{
     background:transparent;
     color:var(--muted);
     border:1px solid var(--border);
   }
   .btn-ghost:hover{color:var(--text); border-color:var(--brand-2);}
-
   .btn-mini{
     padding:5px 11px;
     font-size:11px;
@@ -241,9 +224,7 @@
     font-family:var(--font-mono);
   }
   .btn-mini:hover{border-color:var(--brand-2); color:#fff; background:rgba(29,219,139,0.08);}
-
   .row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
-
   /* ---------- Tables ---------- */
   table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px;}
   th{
@@ -279,9 +260,7 @@
     display:flex;align-items:center;justify-content:center;
   }
   .row-x:hover{background:var(--danger-bg);border-color:var(--danger);}
-
   .col-actions{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
-
   /* ---------- Platform blocks (brand-colored) ---------- */
   .platform-block{
     --pf-color:#e8197b;
@@ -350,7 +329,6 @@
     vertical-align:middle;
     box-shadow:0 0 8px currentColor;
   }
-
   /* ---------- Pricing rows ---------- */
   .price-row{
     display:flex;align-items:center;justify-content:space-between;gap:14px;
@@ -388,7 +366,6 @@
     margin-top:5px; word-break:break-all;
   }
   .payment-method-hint.no-match{ color:var(--faint); }
-
   /* Búsqueda rápida de método de pago (Paso 1) */
   .quick-lookup{
     margin-top:22px; padding:16px; border:1px dashed var(--border);
@@ -419,12 +396,10 @@
   }
   .price-input:focus{border-color:var(--brand-2); outline:none; box-shadow:0 0 0 3px rgba(29,219,139,0.12);}
   .currency-lbl-inline{font-size:10.5px;color:var(--faint);font-weight:600;margin-right:8px; font-family:var(--font-mono); text-transform:uppercase;}
-
   /* Costo unitario editable dentro del desglose de pagos */
   .cost-cell{display:flex; align-items:center; gap:6px; flex-wrap:nowrap;}
   .price-edit{width:78px; padding:6px 8px;}
   .btn-copy-price{padding:5px 8px; flex-shrink:0;}
-
   /* Total del lote — resaltado para no confundirlo con el costo unitario */
   .total-chip{
     display:inline-block;
@@ -438,7 +413,30 @@
     border:1px solid color-mix(in srgb, var(--brand) 45%, var(--border));
     white-space:nowrap;
   }
-
+  /* Clic para copiar el total del lote */
+  .total-chip.copyable{cursor:pointer; transition:.15s ease;}
+  .total-chip.copyable:hover{
+    filter:brightness(1.18);
+    box-shadow:0 0 0 1px var(--brand-2), 0 4px 12px -2px rgba(232,25,123,0.55);
+    transform:translateY(-1px);
+  }
+  .total-chip.copyable:active{transform:translateY(0);}
+  /* Fila de subtotal cuando un mismo proveedor agrupa varios lotes/plataformas */
+  .provider-subtotal-row td{
+    background:rgba(232,25,123,0.06) !important;
+    border-top:1px dashed rgba(232,25,123,0.35);
+    border-bottom:1px solid rgba(232,25,123,0.18);
+    padding-top:10px;
+    padding-bottom:10px;
+  }
+  /* Fila marcada como pagada (se activa automáticamente al copiar el método de pago) */
+  #paymentsWrap tbody tr.paid td{
+    background:rgba(29,219,139,0.16) !important;
+    border-color:rgba(29,219,139,0.3);
+  }
+  #paymentsWrap tbody tr.paid:hover td{
+    background:rgba(29,219,139,0.24) !important;
+  }
   /* ---------- Totals ---------- */
   .totals{display:flex;gap:14px;margin:14px 0 22px;flex-wrap:wrap;}
   .total-box{
@@ -454,9 +452,7 @@
   .total-box .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em; font-family:var(--font-mono);}
   .total-box .val{font-size:19px;font-weight:700;margin-top:8px;line-height:1.4; font-family:var(--font-display); font-variant-numeric:tabular-nums;}
   .pend{color:#ffcf85;} .pag{color:#7bf0bd;} .gen{color:#c9c2ff;}
-
   .empty{color:var(--muted);font-size:13px;padding:30px;text-align:center; font-family:var(--font-mono);}
-
   .toast{
     position:fixed;bottom:24px;right:24px;
     background:var(--panel3);border:1px solid var(--brand-2);color:var(--text);
@@ -466,15 +462,12 @@
     font-family:var(--font-body); font-weight:500;
   }
   .toast.show{opacity:1;transform:translateY(0);}
-
   input[type=checkbox]{width:16px;height:16px;accent-color:var(--brand-2);cursor:pointer;}
   .hint{font-size:11.5px;color:var(--faint);margin-top:10px; font-family:var(--font-mono);}
-
   ::-webkit-scrollbar{height:8px; width:8px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border); border-radius:8px;}
   ::-webkit-scrollbar-thumb:hover{background:var(--brand);}
-
   @media (max-width:640px){
     .sub{margin-left:0;}
     .price-row{flex-direction:column; align-items:flex-start;}
@@ -483,20 +476,17 @@
 </head>
 <body>
 <div class="app-shell">
-
 <div class="app-header">
   <div class="signal-mark"><span></span><span></span><span></span><span></span><span></span></div>
   <h1><span class="accent">Wave Play</span> — Organizador de Renovaciones y Stock del Día</h1>
 </div>
 <div class="sub">panel de control · renovaciones diarias · stock y proveedores</div>
-
 <div class="steps">
   <div class="step-pill" id="pill-1">1. Pegar</div>
   <div class="step-pill" id="pill-2">2. Revisar</div>
   <div class="step-pill" id="pill-3">3. Precios + Stock</div>
   <div class="step-pill" id="pill-4">4. Tablas Finales</div>
 </div>
-
 <!-- STEP 1 -->
 <div class="card" id="step1">
   <h2>Paso 1 — Pega tu listado crudo</h2>
@@ -505,7 +495,6 @@
   <div class="row">
     <button class="btn-primary" onclick="organizar()">Organizar Todo</button>
   </div>
-
   <div class="quick-lookup">
     <div class="quick-lookup-title">🔎 Búsqueda rápida de método de pago <span class="badge">independiente, no requiere datos arriba</span></div>
     <div class="quick-lookup-row">
@@ -515,9 +504,7 @@
     </div>
   </div>
 </div>
-
 <datalist id="providerNamesList"></datalist>
-
 <!-- STEP 2 -->
 <div class="card" id="step2" style="display:none;">
   <h2>Paso 2 — Revisa y corrige (editable)</h2>
@@ -528,14 +515,13 @@
     <button class="btn-primary" onclick="goPricing()">Continuar a precios →</button>
   </div>
 </div>
-
 <!-- STEP 3 -->
 <div class="card" id="step3" style="display:none;">
   <h2>Paso 3 — Asignación de Costos y Compra de Stock Nuevo</h2>
   <div class="hint" style="margin-bottom: 16px;">Rellena el precio unitario en la columna correspondiente (Dólares o Soles).</div>
-  
+
   <div id="pricingWrap"></div>
-  
+
   <!-- Formulario Fijo de YouTube Manual -->
   <div class="price-row provider-price-row" data-provider-key="youtube" style="border-top: 2px dashed var(--border); margin-top: 24px; padding-top: 16px;">
     <div class="price-row-top">
@@ -556,28 +542,25 @@
       <input type="text" class="payment-method-input" id="ytPaymentMethodInput" placeholder="Cuenta / correo / wallet" oninput="updatePaymentMethodText('youtube', null, this.value)">
     </div>
   </div>
-
   <!-- Celdas Vacías Configurables -->
   <div style="margin-top: 24px; font-size: 12px; color: var(--brand-2); font-weight: 600; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); text-transform:uppercase; letter-spacing:.04em;">
     🛠️ Lotes Adicionales / Registro de Stock Nuevo para Comprar
   </div>
   <div id="customRowsWrap"></div>
-
   <div class="row" style="margin-top:20px;">
     <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
     <button class="btn-primary" onclick="generarFinal()">Generar Todo →</button>
   </div>
 </div>
-
 <!-- STEP 4 -->
 <div class="card" id="step4" style="display:none;">
   <h2>Paso 4 — Tablas Organizadas y Desglose</h2>
   <div class="hint" style="margin-bottom:16px;">Estructura con sangría derecha para subgrupos. Copia de forma Global (Plataforma), por Subgrupo (Proveedor) o Individual (Correo).</div>
   <div id="finalTablesWrap"></div>
 </div>
-
 <div class="card" id="paymentsCard" style="display:none;">
   <h2>Desglose de pagos a proveedores (Incluye Stock)</h2>
+  <div class="hint" style="margin-bottom:14px;">Haz clic sobre cualquier chip de "Total Lote" para copiar el monto. Cuando un mismo proveedor aparece en más de un lote (aunque sean plataformas distintas), se muestra una fila de subtotal con la suma total a pagarle.</div>
   <div class="totals">
     <div class="total-box"><div class="lbl">Pendiente</div><div class="val pend" id="totPend"></div></div>
     <div class="total-box"><div class="lbl">Pagado</div><div class="val pag" id="totPaid"></div></div>
@@ -588,17 +571,13 @@
     <button class="btn-ghost" onclick="reset()">↺ Empezar de nuevo</button>
   </div>
 </div>
-
 </div>
 <div class="toast" id="toast"></div>
-
 <script>
-let accounts = []; 
+let accounts = [];
 let groups = {};
-
 let youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' };
 let customRows = Array.from({ length: 5 }, () => ({ platform: '', count: 0, price: 0, priceSet:false, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' }));
-
 const PLATFORM_PATTERNS = [
   {name:'Prime Video', re:/prime\s*video|amazon\s*prime/i},
   {name:'Disney+', re:/disney\s*\+|disney\s*plus|\bdisney\b/i},
@@ -616,7 +595,6 @@ const PLATFORM_PATTERNS = [
   {name:'Paramount+', re:/paramount/i},
   {name:'Temporales', re:/temporal(es)?/i},
 ];
-
 /* Colores de marca por plataforma — solo uso visual (bordes/acentos), no altera datos */
 const PLATFORM_COLORS = {
   'Netflix': '#E50914',
@@ -636,7 +614,6 @@ const PLATFORM_COLORS = {
   'Otros': '#E8197B'
 };
 function getPlatformColor(name){ return PLATFORM_COLORS[name] || '#E8197B'; }
-
 /* ── Métodos de pago por proveedor (preconfigurado, editable en Paso 3) ── */
 const PROVIDER_PAYMENTS = {
   'Netfly': '17692162',
@@ -670,22 +647,18 @@ const PROVIDER_PAYMENTS = {
   'Sofi correos': '1248416753'
 };
 const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
-
 function findProviderMatch(name){
   if(!name) return '';
   const norm = name.trim().toLowerCase();
   const hit = PROVIDER_NAMES.find(p => p.toLowerCase() === norm);
   return hit || '';
 }
-
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-
 function buildProviderDatalistOptions(){
   return PROVIDER_NAMES.map(p => `<option value="${escapeHtml(p)}">`).join('');
 }
-
 /* Entidad genérica: 'group' usa key de texto, 'youtube' no usa key, 'custom' usa índice numérico */
 function getPayEntity(kind, key){
   if(kind==='group') return groups[key];
@@ -693,7 +666,6 @@ function getPayEntity(kind, key){
   if(kind==='custom') return customRows[key];
   return null;
 }
-
 function providerStep3Selector(kind, key){
   const id = kind==='youtube' ? 'youtube' : `${kind}-${key}`;
   return `.provider-price-row[data-provider-key="${id}"]`;
@@ -703,7 +675,6 @@ function providerStep4Selector(kind, key){
   if(kind==='youtube') return `tr[data-row-type="youtube"]`;
   return `tr[data-row-type="custom"][data-idx="${key}"]`;
 }
-
 function syncProviderControls(kind, key, providerName, paymentMethod){
   const row3 = document.querySelector(providerStep3Selector(kind, key));
   if(row3){
@@ -720,14 +691,15 @@ function syncProviderControls(kind, key, providerName, paymentMethod){
     if(hint) hint.textContent = paymentMethod || 'Sin método asignado';
   }
 }
-
 function updateProviderSelection(kind, key, providerName){
   const ent = getPayEntity(kind, key); if(!ent) return;
   ent.providerName = providerName;
   ent.paymentMethod = PROVIDER_PAYMENTS[providerName] || '';
   syncProviderControls(kind, key, providerName, ent.paymentMethod);
+  /* Al confirmar un proveedor (coincidencia exacta), reconstruimos el desglose de pagos
+     para que las filas se reagrupen y sumen automáticamente si el proveedor se repite. */
+  renderPayments();
 }
-
 /* Se dispara mientras se escribe en el campo de proveedor (autocompletado tipo buscador).
    Si lo escrito coincide exactamente (sin distinguir mayúsculas) con un proveedor conocido,
    se confirma la selección y se autocompleta el método de pago. Si aún no coincide (se está
@@ -742,18 +714,30 @@ function onProviderTextInput(kind, key, typedValue){
   ent.providerName = typedValue;
   syncProviderControls(kind, key, typedValue, ent.paymentMethod);
 }
-
 function updatePaymentMethodText(kind, key, val){
   const ent = getPayEntity(kind, key); if(!ent) return;
   ent.paymentMethod = val;
 }
-
 function copyPaymentMethod(kind, key){
   const ent = getPayEntity(kind, key); if(!ent) return;
   if(!ent.paymentMethod || !ent.paymentMethod.trim()){ showToast('Este proveedor no tiene método de pago asignado'); return; }
   executeCopy(ent.paymentMethod, '¡Método de pago copiado! ✓');
+  markEntityPaid(kind, key, true);
 }
-
+/* Marca (o desmarca) una entidad de pago como pagada: actualiza el dato, sombrea la fila
+   en el desglose de pagos (Paso 4) y refleja el checkbox "Pagado". Se usa automáticamente
+   al copiar el método de pago; el usuario puede luego desmarcarla con el checkbox. */
+function markEntityPaid(kind, key, paidVal){
+  const ent = getPayEntity(kind, key); if(!ent) return;
+  ent.paid = paidVal;
+  const row4 = document.querySelector(providerStep4Selector(kind, key));
+  if(row4){
+    row4.classList.toggle('paid', paidVal);
+    const cb = row4.querySelector('td:first-child input[type="checkbox"]');
+    if(cb) cb.checked = paidVal;
+  }
+  updateTotals();
+}
 /* Búsqueda rápida e independiente de método de pago (Paso 1) — no depende de tener cuentas cargadas */
 let quickLookupMethod = '';
 function quickLookupProvider(typed){
@@ -773,20 +757,17 @@ function copyQuickLookup(){
   if(!quickLookupMethod){ showToast('Escribe (o elige) un proveedor válido primero'); return; }
   executeCopy(quickLookupMethod, '¡Método de pago copiado! ✓');
 }
-
 const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
 const DATE_RE = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
 /* Líneas que son solo una observación/nota (ej: "reemplazo de correo@x.com") aunque contengan un correo,
    no deben interpretarse como el inicio de una cuenta nueva. */
 const NOTE_ONLY_RE = /reemplazo/i;
-
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 1800);
 }
-
 function setPill(n){
   for(let i=1;i<=4;i++){
     const p = document.getElementById('pill-'+i);
@@ -795,7 +776,6 @@ function setPill(n){
     if(i===n) p.classList.add('active');
   }
 }
-
 function goStep(n){
   for(let i=1;i<=4;i++){
     document.getElementById('step'+i).style.display = (i===n)?'block':'none';
@@ -803,49 +783,40 @@ function goStep(n){
   if(n!==4) document.getElementById('paymentsCard').style.display='none';
   setPill(n);
 }
-
 function canonicalizePlatform(text){
   if(!text) return null;
   for(const p of PLATFORM_PATTERNS){
     if(p.re.test(text)) return p.name;
   }
-  return text.trim(); 
+  return text.trim();
 }
-
 function organizar(){
   const raw = document.getElementById('rawInput').value;
-
   const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
   accounts = [];
   let idx = 0;
-
   for(let i = 0; i < lines.length; i++){
     if(EMAIL_RE.test(lines[i]) && !NOTE_ONLY_RE.test(lines[i])){
       const emailText = lines[i];
       const platformRaw = i > 0 ? lines[i-1] : '';
       const passwordText = (i + 1) < lines.length ? lines[i+1] : '';
       const providerRaw = (i + 2) < lines.length ? lines[i+2] : '';
-
       let platformName = canonicalizePlatform(platformRaw);
       if(!platformName) platformName = 'Otros';
-
       let observation = 'Sin Proveedor';
       if(providerRaw){
         const firstWord = providerRaw.split(/\s+/)[0];
         if(firstWord) observation = firstWord;
       }
-
       let dueDateStr = '—';
       let days = null;
       let dateMatch = null;
-
       for(let j = i+3; j <= i+4 && j < lines.length; j++){
         if(DATE_RE.test(lines[j])){
           dateMatch = lines[j].match(DATE_RE);
           break;
         }
       }
-
       if(dateMatch){
         let d=parseInt(dateMatch[1]), mo=parseInt(dateMatch[2]), y=parseInt(dateMatch[3]);
         if(y<100) y+=2000;
@@ -857,7 +828,6 @@ function organizar(){
         days = Math.round((d2-t2)/86400000);
         dueDateStr = dueDate.toLocaleDateString('es-PE');
       }
-
       accounts.push({
         id: 'acc' + (idx++),
         platform: platformName,
@@ -870,20 +840,17 @@ function organizar(){
       });
     }
   }
-
   if(accounts.length===0){
     showToast(raw.trim() ? 'No se detectaron correos válidos, puedes continuar igual.' : 'Sin cuentas nuevas — puedes continuar solo con stock adicional.');
   }
   renderPreview();
   goStep(2);
 }
-
 function removeRow(id){
   accounts = accounts.filter(a=>a.id!==id);
   renderPreview();
   showToast('Cuenta removida');
 }
-
 function renderPreview(){
   let html = `<div style="overflow-x:auto"><table><thead><tr>
     <th></th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th>Proveedor</th>
@@ -902,7 +869,6 @@ function renderPreview(){
   });
   html += `</tbody></table></div>`;
   document.getElementById('previewTableWrap').innerHTML = html;
-
   document.querySelectorAll('#previewTableWrap td[contenteditable]').forEach(td=>{
     td.addEventListener('blur', () => {
       const tr = td.closest('tr');
@@ -917,9 +883,7 @@ function renderPreview(){
     });
   });
 }
-
 function groupKey(a){ return a.platform + '||' + a.observation; }
-
 function goPricing(){
   groups = {};
   accounts.forEach(a=>{
@@ -936,14 +900,12 @@ function goPricing(){
   renderCustomRows();
   goStep(3);
 }
-
 function renderPricingList() {
   let html = '';
   Object.entries(groups).forEach(([k,g])=>{
     const valUsdt = (g.currency === 'USDT' && (g.priceSet || g.price)) ? g.price : '';
     const valSoles = (g.currency === 'S/.' && (g.priceSet || g.price)) ? g.price : '';
     const pfColor = getPlatformColor(g.platform);
-
     html += `<div class="price-row provider-price-row" data-provider-key="group-${k}">
       <div class="price-row-top">
         <div class="price-label"><span class="pf-dot" style="background:${pfColor}; color:${pfColor};"></span>${g.platform} <span style="color:var(--brand-2); margin-left:4px;">(${g.observation})</span> <span class="cnt">(${g.count} und)</span></div>
@@ -964,7 +926,6 @@ function renderPricingList() {
   });
   document.getElementById('pricingWrap').innerHTML = html || '<div class="empty">No hay cuentas del listado base.</div>';
 }
-
 function updateGroupPrice(key, val, currency, el) {
   const row = el.closest('.price-input-wrap');
   const inputs = row.querySelectorAll('.price-input');
@@ -977,7 +938,6 @@ function updateGroupPrice(key, val, currency, el) {
   groups[key].priceSet = true;
   inputs.forEach(input => { if (input !== el) input.value = ''; });
 }
-
 function updateYoutubeManual(){
   youtubeRow.count = parseInt(document.getElementById('ytManualCount').value) || 0;
 }
@@ -994,7 +954,6 @@ function updateYoutubeManualPrice(currency){
     if(val) document.getElementById('ytManualPriceUSDT').value = '';
   }
 }
-
 function renderCustomRows(){
   let html = '';
   customRows.forEach((row, i)=>{
@@ -1022,7 +981,6 @@ function renderCustomRows(){
   });
   document.getElementById('customRowsWrap').innerHTML = html;
 }
-
 function updateCustomRowPrice(i, val, currency){
   customRows[i].price = parseFloat(val) || 0;
   customRows[i].currency = currency;
@@ -1030,25 +988,21 @@ function updateCustomRowPrice(i, val, currency){
   if(currency === 'USDT') document.getElementById('cRowSoles-'+i).value = '';
   else document.getElementById('cRowUsdt-'+i).value = '';
 }
-
 function generarFinal(){
   const byPlatformAndProvider = {};
-  
+
   accounts.forEach(a=>{
     if(!byPlatformAndProvider[a.platform]) byPlatformAndProvider[a.platform] = {};
     if(!byPlatformAndProvider[a.platform][a.observation]) byPlatformAndProvider[a.platform][a.observation] = [];
     byPlatformAndProvider[a.platform][a.observation].push(a);
   });
-
   let tablesHtml = '';
   Object.entries(byPlatformAndProvider).forEach(([platform, providersMap])=>{
-    
+
     let platformTotal = 0;
     Object.values(providersMap).forEach(arr => platformTotal += arr.length);
-
     const safePlatform = platform.replace(/'/g, "\\'");
     const pfColor = getPlatformColor(platform);
-
     // Encabezado de Plataforma con botones de copiado GLOBAL incorporados a la derecha
     tablesHtml += `<div class="platform-block" style="--pf-color:${pfColor}">
       <div class="platform-title" style="--pf-color:${pfColor}">
@@ -1059,11 +1013,10 @@ function generarFinal(){
           <button class="btn-mini" onclick="copyColGlobal('${safePlatform}','password')">🌍 Todo Claves</button>
         </div>
       </div>`;
-
     // Iteración de Proveedores con sangría aplicada a la derecha (margin-left: 24px)
     Object.entries(providersMap).forEach(([provider, list])=>{
       const safeProvider = provider.replace(/'/g, "\\'");
-      
+
       tablesHtml += `
       <div style="margin-left: 24px; margin-bottom: 22px;">
         <div class="subgroup-title">👤 Proveedor: ${provider} <span class="badge" style="font-size:10px;">${list.length} und</span></div>
@@ -1077,13 +1030,13 @@ function generarFinal(){
           <thead><tr>
             <th style="width:40px;">✓</th><th>Plataforma</th><th>Correo</th><th>Clave</th><th>Vence</th><th>Días</th><th style="width:45px; text-align:center;">Copiar</th>
           </tr></thead><tbody>`;
-      
+
       list.forEach(a=>{
         const urgent = (a.days!==null && a.days<=1) ? 'urgent' : '';
         const isChecked = a.renewedPaid ? 'checked' : '';
         const rowClass = [urgent, a.renewedPaid ? 'account-paid' : ''].join(' ').trim();
         const safeEmail = a.email.replace(/'/g, "\\'");
-        
+
         tablesHtml += `<tr class="${rowClass}" data-acc-id="${a.id}">
           <td><input type="checkbox" ${isChecked} onchange="toggleAccountPaid('${a.id}', this.checked)"></td>
           <td data-col="platform">${a.platform}</td>
@@ -1094,19 +1047,16 @@ function generarFinal(){
           <td style="text-align:center;"><button class="btn-mini" style="padding:2px 6px;" onclick="executeCopy('${safeEmail}', '¡Correo individual copiado! ✓')" title="Copiar este correo electrónico">📋</button></td>
         </tr>`;
       });
-      
+
       tablesHtml += `</tbody></table></div></div>`;
     });
-
     tablesHtml += `</div>`;
   });
-
   document.getElementById('finalTablesWrap').innerHTML = tablesHtml || '<div class="empty">Sin cuentas procesadas</div>';
   goStep(4);
   renderPayments();
   document.getElementById('paymentsCard').style.display = 'block';
 }
-
 function toggleAccountPaid(id, checked) {
   const acc = accounts.find(a => a.id === id);
   if (acc) {
@@ -1116,7 +1066,6 @@ function toggleAccountPaid(id, checked) {
     renderPayments();
   }
 }
-
 // Copiado GLOBAL por Plataforma (Consolida todas las tablas internas que coincidan con la app)
 function copyColGlobal(platform, field){
   const tables = document.querySelectorAll(`table[data-platform="${platform}"]`);
@@ -1128,7 +1077,6 @@ function copyColGlobal(platform, field){
   if(allTexts.length === 0) { showToast('No hay datos globales para copiar'); return; }
   executeCopy(allTexts.join('\n'), '¡Copiado GLOBAL de la plataforma listo! ✓');
 }
-
 // Copiado por Subgrupo (Filtra por Plataforma y Proveedor específico)
 function copyColSub(platform, provider, field){
   const tables = document.querySelectorAll('table');
@@ -1141,7 +1089,6 @@ function copyColSub(platform, provider, field){
   const text = [...cells].map(c=>c.textContent.trim()).join('\n');
   executeCopy(text, '¡Columna de subgrupo copiada! ✓');
 }
-
 function executeCopy(text, successMessage) {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text).then(() => showToast(successMessage)).catch(() => fallbackCopy(text, successMessage));
@@ -1149,63 +1096,161 @@ function executeCopy(text, successMessage) {
     fallbackCopy(text, successMessage);
   }
 }
-
 function fallbackCopy(text, successMessage) {
   const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
   document.body.appendChild(ta); ta.select();
   try { document.execCommand('copy'); showToast(successMessage); } catch(e) { showToast('Error al copiar'); }
   document.body.removeChild(ta);
 }
-
+/* Construye el mensaje de renovación indicando siempre la plataforma antes del correo.
+   Si hay una sola plataforma con un solo correo: "Hola buen día, renovación de Disney+: correo@x.com"
+   Si hay una sola plataforma con varios correos: se listan uno por línea debajo del nombre de plataforma.
+   Si hay varias plataformas (proveedor agrupado): una línea por plataforma, cada una con sus correos. */
+function buildRenewalMessage(entries){
+  if(!entries || entries.length === 0) return '';
+  const byPlatform = {};
+  const order = [];
+  entries.forEach(e=>{
+    if(!byPlatform[e.platform]){ byPlatform[e.platform] = []; order.push(e.platform); }
+    byPlatform[e.platform].push(e.email);
+  });
+  if(order.length === 1){
+    const emails = byPlatform[order[0]];
+    if(emails.length === 1) return `Hola buen día, renovación de ${order[0]}: ${emails[0]}`;
+    return `Hola buen día, renovación de ${order[0]}:\n${emails.join('\n')}`;
+  }
+  const parts = order.map(p => `${p}: ${byPlatform[p].join(', ')}`);
+  return `Hola buen día, renovación de\n${parts.join('\n')}`;
+}
 function copyProviderMessage(key) {
   const g = groups[key]; if (!g) return;
-  const emails = g.accountIds.map(id => accounts.find(a => a.id === id)).filter(acc => acc && !acc.renewedPaid).map(acc => acc.email);
-  if (emails.length === 0) { showToast('Sin cuentas pendientes en este lote ✓'); return; }
-  let msg = emails.length === 1 ? `Hola, renovación de ${emails[0]}` : `Hola, renovación de:\n${emails.join('\n')}`;
-  executeCopy(msg, '¡Mensaje copiado! ✓');
+  const entries = g.accountIds
+    .map(id => accounts.find(a => a.id === id))
+    .filter(acc => acc && !acc.renewedPaid)
+    .map(acc => ({platform: acc.platform, email: acc.email}));
+  if (entries.length === 0) { showToast('Sin cuentas pendientes en este lote ✓'); return; }
+  executeCopy(buildRenewalMessage(entries), '¡Mensaje copiado! ✓');
 }
-
-function renderPayments(){
-  let html = `<div style="overflow-x:auto"><table><thead><tr>
-    <th>Pagado</th><th>Proveedor / Origen</th><th>Plataforma</th><th>Unidades</th><th>Costo Unitario</th><th>Total Lote</th><th>Acción</th>
-  </tr></thead><tbody>`;
-
+/* ── Agrupación de pagos por proveedor (Paso 4 · Desglose de pagos) ──
+   Cada "lote" (grupo plataforma+proveedor, YouTube manual, o fila de stock adicional) se
+   asigna a un "bucket" según su proveedor de pago. Si dos o más lotes comparten el mismo
+   proveedor (aunque sean de plataformas distintas), caen en el mismo bucket y se muestra
+   una fila de subtotal con la suma total a pagarle. Los lotes sin proveedor asignado nunca
+   se agrupan entre sí (cada uno queda solo). Esto NO afecta las tablas finales del Paso 4,
+   que siguen separadas por plataforma/proveedor. */
+function computePaymentBuckets(){
+  const buckets = {};
+  let autoIdCounter = 0;
+  function addItem(item){
+    const providerName = (item.providerName || '').trim();
+    const bucketKey = providerName ? ('p::' + providerName.toLowerCase()) : ('u::' + (autoIdCounter++));
+    if(!buckets[bucketKey]){
+      buckets[bucketKey] = { providerName: providerName || '(sin proveedor)', paymentMethod: item.paymentMethod || '', items: [] };
+    }
+    buckets[bucketKey].items.push(item);
+  }
   Object.entries(groups).forEach(([k,g])=>{
     const dynamicCount = g.accountIds.filter(id => {
       const a = accounts.find(acc => acc.id === id);
       return a ? !a.renewedPaid : false;
     }).length;
-    const total = (g.price * dynamicCount);
-
-    html += `<tr class="${g.paid?'paid':''}" data-key="${k}">
-      <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${k}', this.checked)"></td>
+    addItem({ kind:'group', key:k, platform:g.platform, count:dynamicCount, price:g.price, currency:g.currency, providerName:g.providerName, paymentMethod:g.paymentMethod });
+  });
+  if(youtubeRow.count > 0){
+    addItem({ kind:'youtube', key:null, platform:'YouTube (Manual)', count:youtubeRow.count, price:youtubeRow.price, currency:youtubeRow.currency, providerName:youtubeRow.providerName, paymentMethod:youtubeRow.paymentMethod });
+  }
+  customRows.forEach((row, idx)=>{
+    if(row.count > 0 && row.platform.trim()){
+      addItem({ kind:'custom', key:idx, platform:row.platform, count:row.count, price:row.price, currency:row.currency, providerName:row.providerName, paymentMethod:row.paymentMethod });
+    }
+  });
+  return buckets;
+}
+function formatMoney(amount, currency){
+  return `${currency === 'S/.' ? 'S/. ' : ''}${amount.toFixed(2)} ${currency === 'USDT' ? 'USDT' : ''}`;
+}
+/* Chip de total clickeable — al hacer clic copia solo el número (útil para pegar en apps de pago) */
+function totalChipHtml(amount, currency){
+  const text = formatMoney(amount, currency);
+  return `<span class="total-chip copyable" title="Clic para copiar el monto" onclick="executeCopy('${amount.toFixed(2)}','¡Total copiado! ✓')">${text}</span>`;
+}
+function buildSubtotalChips(bucket){
+  const sums = {};
+  bucket.items.forEach(it=>{
+    const amt = (it.price||0) * (it.count||0);
+    sums[it.currency] = (sums[it.currency]||0) + amt;
+  });
+  return Object.entries(sums).map(([cur,amt]) => totalChipHtml(amt, cur)).join(' + ');
+}
+function copyProviderBucketMessage(bucketKey){
+  const buckets = computePaymentBuckets();
+  const bucket = buckets[bucketKey];
+  if(!bucket){ showToast('No se encontró el proveedor'); return; }
+  const entries = [];
+  bucket.items.forEach(item=>{
+    if(item.kind === 'group'){
+      const g = groups[item.key];
+      if(!g) return;
+      g.accountIds.forEach(id=>{
+        const acc = accounts.find(a=>a.id===id);
+        if(acc && !acc.renewedPaid) entries.push({platform: acc.platform, email: acc.email});
+      });
+    }
+  });
+  if(entries.length === 0){ showToast('Sin cuentas pendientes para este proveedor ✓'); return; }
+  executeCopy(buildRenewalMessage(entries), '¡Mensaje copiado! ✓');
+}
+function copyProviderBucketPaymentMethod(bucketKey){
+  const buckets = computePaymentBuckets();
+  const bucket = buckets[bucketKey];
+  if(!bucket){ showToast('No se encontró el proveedor'); return; }
+  if(!bucket.paymentMethod || !bucket.paymentMethod.trim()){ showToast('Este proveedor no tiene método de pago asignado'); return; }
+  executeCopy(bucket.paymentMethod, '¡Método de pago copiado! ✓');
+  bucket.items.forEach(item => markEntityPaid(item.kind, item.key, true));
+}
+function refreshBucketSubtotal(providerName){
+  const pname = (providerName || '').trim();
+  if(!pname) return;
+  const bucketKey = 'p::' + pname.toLowerCase();
+  const row = document.querySelector(`tr.provider-subtotal-row[data-subtotal-key="${CSS.escape(bucketKey)}"]`);
+  if(!row) return;
+  const buckets = computePaymentBuckets();
+  const bucket = buckets[bucketKey];
+  if(!bucket) return;
+  const cell = row.querySelector('[data-role="subtotal-amount"]');
+  if(cell) cell.innerHTML = buildSubtotalChips(bucket);
+}
+function renderPaymentItemRow(item){
+  const total = (item.price||0) * (item.count||0);
+  if(item.kind === 'group'){
+    const g = groups[item.key];
+    return `<tr class="${g.paid?'paid':''}" data-key="${item.key}">
+      <td><input type="checkbox" ${g.paid?'checked':''} onchange="togglePaid('${item.key}', this.checked)"></td>
       <td>
-        <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(g.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('group', '${k}', this.value)">
+        <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(g.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('group', '${item.key}', this.value)">
         <div class="obs-original">detectado: ${g.observation}</div>
         <div class="payment-method-hint">${escapeHtml(g.paymentMethod) || 'Sin método asignado'}</div>
       </td>
       <td><span class="pf-dot" style="background:${getPlatformColor(g.platform)}; color:${getPlatformColor(g.platform)};"></span>${g.platform}</td>
-      <td>${dynamicCount}</td>
+      <td>${item.count}</td>
       <td>
         <div class="cost-cell">
-          <input type="number" class="price-input price-edit" min="0" step="0.01" value="${g.price}" oninput="updateGroupUnitCost('${k}', this.value)">
+          <input type="number" class="price-input price-edit" min="0" step="0.01" value="${g.price}" oninput="updateGroupUnitCost('${item.key}', this.value)">
           <span class="currency-lbl-inline">${g.currency}</span>
           <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
         </div>
       </td>
-      <td data-role="total"><span class="total-chip">${g.currency === 'S/.' ? 'S/. ' : ''}${total.toFixed(2)} ${g.currency === 'USDT' ? 'USDT' : ''}</span></td>
+      <td data-role="total">${totalChipHtml(total, g.currency)}</td>
       <td>
         <div class="col-actions" style="margin-bottom:0;">
-          <button class="btn-mini" onclick="copyProviderMessage('${k}')">📋 Mensaje</button>
-          <button class="btn-mini" onclick="copyPaymentMethod('group','${k}')">💳 Método</button>
+          <button class="btn-mini" onclick="copyProviderMessage('${item.key}')">📋 Mensaje</button>
+          <button class="btn-mini" onclick="copyPaymentMethod('group','${item.key}')">💳 Método</button>
         </div>
       </td>
     </tr>`;
-  });
-
-  if (youtubeRow.count > 0) {
-    const ytTotal = youtubeRow.price * youtubeRow.count;
-    html += `<tr class="${youtubeRow.paid?'paid':''}" data-row-type="youtube">
+  }
+  if(item.kind === 'youtube'){
+    return `<tr class="${youtubeRow.paid?'paid':''}" data-row-type="youtube">
       <td><input type="checkbox" ${youtubeRow.paid?'checked':''} onchange="youtubeRow.paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
       <td>
         <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
@@ -1221,7 +1266,7 @@ function renderPayments(){
           <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
         </div>
       </td>
-      <td data-role="total"><span class="total-chip">${youtubeRow.currency === 'S/.' ? 'S/. ' : ''}${ytTotal.toFixed(2)} ${youtubeRow.currency === 'USDT' ? 'USDT' : ''}</span></td>
+      <td data-role="total">${totalChipHtml(total, youtubeRow.currency)}</td>
       <td>
         <div class="col-actions" style="margin-bottom:0;">
           <button class="btn-mini" onclick="copyPaymentMethod('youtube', null)">💳 Método</button>
@@ -1229,45 +1274,65 @@ function renderPayments(){
       </td>
     </tr>`;
   }
-
-  customRows.forEach((row, idx) => {
-    if (row.count > 0 && row.platform.trim()) {
-      const rowTotal = row.price * row.count;
-      html += `<tr class="${row.paid?'paid':''}" data-row-type="custom" data-idx="${idx}">
-        <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
-        <td>
-          <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
-          <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(row.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('custom', ${idx}, this.value)">
-          <div class="payment-method-hint">${escapeHtml(row.paymentMethod) || 'Sin método asignado'}</div>
+  const idx = item.key;
+  const row = customRows[idx];
+  return `<tr class="${row.paid?'paid':''}" data-row-type="custom" data-idx="${idx}">
+    <td><input type="checkbox" ${row.paid?'checked':''} onchange="customRows[${idx}].paid=this.checked; updateTotals(); this.closest('tr').classList.toggle('paid', this.checked);"></td>
+    <td>
+      <div style="font-size:10.5px; color:var(--brand-2); font-weight:600; margin-bottom:4px; text-transform:uppercase; letter-spacing:.04em;">Stock Nuevo</div>
+      <input type="text" class="provider-select-final" list="providerNamesList" value="${escapeHtml(row.providerName)}" placeholder="Buscar o escribir proveedor..." oninput="onProviderTextInput('custom', ${idx}, this.value)">
+      <div class="payment-method-hint">${escapeHtml(row.paymentMethod) || 'Sin método asignado'}</div>
+    </td>
+    <td>${row.platform}</td>
+    <td>${row.count}</td>
+    <td>
+      <div class="cost-cell">
+        <input type="number" class="price-input price-edit" min="0" step="0.01" value="${row.price}" oninput="updateCustomRowUnitCost(${idx}, this.value)">
+        <span class="currency-lbl-inline">${row.currency}</span>
+        <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
+      </div>
+    </td>
+    <td data-role="total">${totalChipHtml(total, row.currency)}</td>
+    <td>
+      <div class="col-actions" style="margin-bottom:0;">
+        <button class="btn-mini" onclick="copyPaymentMethod('custom', ${idx})">💳 Método</button>
+      </div>
+    </td>
+  </tr>`;
+}
+function renderPayments(){
+  const buckets = computePaymentBuckets();
+  let html = `<div style="overflow-x:auto"><table><thead><tr>
+    <th>Pagado</th><th>Proveedor / Origen</th><th>Plataforma</th><th>Unidades</th><th>Costo Unitario</th><th>Total Lote</th><th>Acción</th>
+  </tr></thead><tbody>`;
+  Object.entries(buckets).forEach(([bucketKey, bucket])=>{
+    const grouped = bucket.items.length > 1;
+    bucket.items.forEach(item=>{
+      html += renderPaymentItemRow(item);
+    });
+    if(grouped){
+      const safeBucketKey = bucketKey.replace(/'/g, "\\'");
+      const hasMessages = bucket.items.some(it=>it.kind==='group');
+      html += `<tr class="provider-subtotal-row" data-subtotal-key="${bucketKey}">
+        <td></td>
+        <td colspan="3" style="font-family:var(--font-body); font-weight:700; color:var(--brand-2);">
+          Σ Total a ${escapeHtml(bucket.providerName)} <span class="badge">${bucket.items.length} lotes</span>
         </td>
-        <td>${row.platform}</td>
-        <td>${row.count}</td>
-        <td>
-          <div class="cost-cell">
-            <input type="number" class="price-input price-edit" min="0" step="0.01" value="${row.price}" oninput="updateCustomRowUnitCost(${idx}, this.value)">
-            <span class="currency-lbl-inline">${row.currency}</span>
-            <button class="btn-mini btn-copy-price" onclick="copyRowPrice(this)" title="Copiar solo el número del precio">💲</button>
-          </div>
-        </td>
-        <td data-role="total"><span class="total-chip">${row.currency === 'S/.' ? 'S/. ' : ''}${rowTotal.toFixed(2)} ${row.currency === 'USDT' ? 'USDT' : ''}</span></td>
+        <td></td>
+        <td data-role="subtotal-amount">${buildSubtotalChips(bucket)}</td>
         <td>
           <div class="col-actions" style="margin-bottom:0;">
-            <button class="btn-mini" onclick="copyPaymentMethod('custom', ${idx})">💳 Método</button>
+            ${hasMessages ? `<button class="btn-mini" onclick="copyProviderBucketMessage('${safeBucketKey}')">📋 Mensaje</button>` : ''}
+            <button class="btn-mini" onclick="copyProviderBucketPaymentMethod('${safeBucketKey}')">💳 Método</button>
           </div>
         </td>
       </tr>`;
     }
   });
-
   html += `</tbody></table></div>`;
-  document.getElementById('paymentsWrap').innerHTML = html;
+  document.getElementById('paymentsWrap').innerHTML = html || '<div class="empty">Sin datos</div>';
   updateTotals();
 }
-
-function formatMoney(amount, currency){
-  return `${currency === 'S/.' ? 'S/. ' : ''}${amount.toFixed(2)} ${currency === 'USDT' ? 'USDT' : ''}`;
-}
-
 function copyRowPrice(btn){
   const cell = btn.closest('.cost-cell');
   const input = cell ? cell.querySelector('input') : null;
@@ -1275,7 +1340,6 @@ function copyRowPrice(btn){
   const val = parseFloat(input.value) || 0;
   executeCopy(val.toFixed(2), '¡Precio copiado (solo número)! ✓');
 }
-
 function updateGroupUnitCost(key, val){
   const g = groups[key]; if(!g) return;
   g.price = parseFloat(val) || 0;
@@ -1287,23 +1351,23 @@ function updateGroupUnitCost(key, val){
       return a ? !a.renewedPaid : false;
     }).length;
     const total = g.price * dynamicCount;
-    const totalCell = tr.querySelector('[data-role="total"] .total-chip');
-    if(totalCell) totalCell.textContent = formatMoney(total, g.currency);
+    const totalCell = tr.querySelector('[data-role="total"]');
+    if(totalCell) totalCell.innerHTML = totalChipHtml(total, g.currency);
   }
+  refreshBucketSubtotal(g.providerName);
   updateTotals();
 }
-
 function updateYoutubeUnitCost(val){
   youtubeRow.price = parseFloat(val) || 0;
   const tr = document.querySelector('tr[data-row-type="youtube"]');
   if(tr){
     const total = youtubeRow.price * youtubeRow.count;
-    const totalCell = tr.querySelector('[data-role="total"] .total-chip');
-    if(totalCell) totalCell.textContent = formatMoney(total, youtubeRow.currency);
+    const totalCell = tr.querySelector('[data-role="total"]');
+    if(totalCell) totalCell.innerHTML = totalChipHtml(total, youtubeRow.currency);
   }
+  refreshBucketSubtotal(youtubeRow.providerName);
   updateTotals();
 }
-
 function updateCustomRowUnitCost(idx, val){
   const row = customRows[idx]; if(!row) return;
   row.price = parseFloat(val) || 0;
@@ -1311,23 +1375,21 @@ function updateCustomRowUnitCost(idx, val){
   const tr = document.querySelector(`tr[data-row-type="custom"][data-idx="${idx}"]`);
   if(tr){
     const total = row.price * row.count;
-    const totalCell = tr.querySelector('[data-role="total"] .total-chip');
-    if(totalCell) totalCell.textContent = formatMoney(total, row.currency);
+    const totalCell = tr.querySelector('[data-role="total"]');
+    if(totalCell) totalCell.innerHTML = totalChipHtml(total, row.currency);
   }
+  refreshBucketSubtotal(row.providerName);
   updateTotals();
 }
-
 function togglePaid(key, checked){
   groups[key].paid = checked;
   const tr = document.querySelector(`tr[data-key="${CSS.escape(key)}"]`);
   if(tr) tr.classList.toggle('paid', checked);
   updateTotals();
 }
-
 function updateTotals(){
   let pendUsdt=0, paidUsdt=0, genUsdt=0;
   let pendSoles=0, paidSoles=0, genSoles=0;
-
   Object.values(groups).forEach(g=>{
     const dynamicCount = g.accountIds.filter(id => {
       const a = accounts.find(acc => acc.id === id);
@@ -1340,7 +1402,6 @@ function updateTotals(){
       genUsdt += total; if(g.paid) paidUsdt += total; else pendUsdt += total;
     }
   });
-
   if (youtubeRow.count > 0) {
     const total = youtubeRow.price * youtubeRow.count;
     if(youtubeRow.currency === 'S/.') {
@@ -1349,7 +1410,6 @@ function updateTotals(){
       genUsdt += total; if(youtubeRow.paid) paidUsdt += total; else pendUsdt += total;
     }
   }
-
   customRows.forEach(row => {
     if (row.count > 0 && row.platform.trim()) {
       const total = row.price * row.count;
@@ -1360,12 +1420,10 @@ function updateTotals(){
       }
     }
   });
-
   document.getElementById('totPend').innerHTML = `<div>${pendUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#ffb3c0">S/. ${pendSoles.toFixed(2)}</div>`;
   document.getElementById('totPaid').innerHTML = `<div>${paidUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#a3e635">S/. ${paidSoles.toFixed(2)}</div>`;
   document.getElementById('totGen').innerHTML = `<div>${genUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:var(--brand-2)">S/. ${genSoles.toFixed(2)}</div>`;
 }
-
 function reset(){
   accounts = []; groups = {};
   youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' };
@@ -1379,7 +1437,6 @@ function reset(){
   document.getElementById('paymentsCard').style.display='none';
   goStep(1);
 }
-
 document.getElementById('providerNamesList').innerHTML = buildProviderDatalistOptions();
 goStep(1);
 </script>
