@@ -680,7 +680,7 @@ const PROVIDER_PAYMENTS = {
   'Allcheap': 'Mr_nike45@hotmail.com',
   'Alex correos': '281736466',
   'Julio activar yt': '960425243',
-  'Qaway': '',
+  'Qaway': 'Web',
   'Imperio': '585003592',
   'Boxtmail': '917494877',
   'Streamplay': '904013433',
@@ -700,8 +700,40 @@ const PROVIDER_PAYMENTS = {
   'YPPest': '0xB9E14635C49eA9B119fA9c8eA19bACb221F8CB64',
   'Sofi correos': '1248416753',
   'Cyber': '910016266',
-  'SH': '',
-  'Otros': ''
+  'SH': 'Web',
+  'Otros': '',
+  'Luis ': '353963220',
+  'Cyber': '910016266'
+};
+const PRICING_RULES = {
+  'Prime Video||BLIX': {price: 2, currency: 'USDT'},
+  'Prime Video||Qaway': {price: 1.5, currency: 'USDT'},
+  'Prime Video||Streamplay': {price: 8, currency: 'S/.'},
+  'Disney+||Zona': {price: 5, currency: 'USDT'},
+  'Disney+||Boxtmail': {price: 27, currency: 'S/.'},
+  'Disney+||Qaway': {price: 5, currency: 'USDT'},
+  'Disney+||Streamplay': {price: 20, currency: 'S/.'},
+  'Disney+||Cyber': {price: 20, currency: 'S/.'},
+  'DGO||Michi': {price: 25, currency: 'S/.'},
+  'YouTube Premium||Condori': {price: 5, currency: 'S/.'},
+  'DGO||RusselORO': {price: 27, currency: 'S/.'},
+  'DGO||RusselPLATA': {price: 25, currency: 'S/.'},
+  'Crunchyroll||Chigui': {price: 2, currency: 'USDT'},
+  'Crunchyroll||Streamplay': {price: 6, currency: 'S/.'},
+  'Paramount+||Ederson': {price: 1, currency: 'USDT'},
+  'Netflix||Allcheap': {price: 10, currency: 'USDT'},
+  'Netflix||Johen': {price: 12, currency: 'USDT'},
+  'Netflix||YPP': {price: 10.8, currency: 'USDT'},
+  'Netflix||SH': {price: 10, currency: 'USDT'},
+  'Netflix||DAMI': {price: 9, currency: 'USDT'},
+  'Netflix||Carrito': {price: 10, currency: 'USDT'},
+  'Netflix||Streamplay': {price: 39, currency: 'S/.'},
+  'Netflix||ANDREINA': {price: 11, currency: 'USDT'},
+  'Netflix||Pablo': {price: 12, currency: 'USDT'},
+  'Netflix||YPPest': {price: 5.3, currency: 'USDT'},
+  'Netflix||Aluria': {price: 35, currency: 'S/.'},
+  'Crunchyroll||Qaway': {price: 1.5, currency: 'USDT'},
+  'Crunchyroll||Woostore': {price: 1.7, currency: 'USDT'}
 };
 const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
 function findProviderMatch(name){
@@ -962,7 +994,8 @@ function goPricing(){
     const k = groupKey(a);
     if(!groups[k]) {
       const matched = findProviderMatch(a.observation);
-      groups[k] = {platform:a.platform, observation:a.observation, count:0, price:0, priceSet:false, currency:'USDT', paid:false, accountIds:[],
+      const rule = matched ? PRICING_RULES[a.platform + '||' + matched] : null;
+      groups[k] = {platform:a.platform, observation:a.observation, count:0, price: rule ? rule.price : 0, priceSet: !!rule, currency: rule ? rule.currency : 'USDT', paid:false, accountIds:[],
         providerName: matched, paymentMethod: matched ? PROVIDER_PAYMENTS[matched] : ''};
     }
     groups[k].count++;
