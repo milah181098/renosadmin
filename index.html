@@ -705,14 +705,14 @@ function getPlatformColor(name){ return PLATFORM_COLORS[name] || '#E8197B'; }
 const PROVIDER_PAYMENTS = {
   'Netfly': '17692162',
   'Zona': 'nndez1234@gmail.com',
-  'Ecuacine': '18132123',
+  'Ecuacine': 'https://hamstartups.com/consultas',
   'Woo': 'https://wowstorepro.com/catalog/orders',
   'Carrito': '1011770591',
   'Movistar': '941893612',
   'Michi': '976132716',
   'Allcheap': 'Mr_nike45@hotmail.com',
   'Alex correos': '281736466',
-  'Qaway': 'Web',
+  'Qaway': 'https://qawayshop.lat/mis-cuentas/',
   'Imperio': '585003592',
   'Boxtmail': '917494877',
   'Streamplay': '904013433',
@@ -764,7 +764,8 @@ const PRICING_RULES = {
   'Netflix||YPPest': {price: 5.3, currency: 'USDT'},
   'Netflix||Aluria': {price: 35, currency: 'S/.'},
   'Crunchyroll||Qaway': {price: 1.5, currency: 'USDT'},
-  'Crunchyroll||Wow': {price: 1.7, currency: 'USDT'}
+  'Crunchyroll||Wow': {price: 1.7, currency: 'USDT'},
+  'YouTube Premium||Ederson': {price: 5, currency: 'S/.'}
 };
 const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
 /* Tipo de método de pago por proveedor — SOLO es una etiqueta visual de referencia
@@ -773,11 +774,37 @@ const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
    'YAPE' | 'PLIN' | 'BINANCE ID' | 'BILLETERA CRIPTO' | 'WEB' | 'OTRO'
    Si un proveedor no aparece en esta lista, se muestra "OTRO" por defecto. */
 const PROVIDER_PAYMENT_TYPES = {
+  'Netfly': 'BINANCE ID',
+  'Zona': 'BINANCE ID',
+  'Ecuacine': 'WEB',
+  'Woo': 'WEB',
+  'Carrito': 'BINANCE ID',
+  'Movistar': 'YAPE',
+  'Michi': 'YAPE',
+  'Allcheap': 'BINANCE ID',
+  'Alex correos': 'BINANCE ID',
   'Qaway': 'WEB',
-  'SH': 'WEB',
+  'Imperio': 'BINANCE ID',
+  'Boxtmail': 'YAPE',
+  'Streamplay': 'YAPE',
+  'Pablo': 'BINANCE ID',
+  'DAMI': 'BINANCE ID',
+  'Johen': 'BINANCE ID',
+  'Kurozaky correos': 'BINANCE ID',
+  'BLIX': 'BINANCE ID',
+  'CARLIN': 'BINANCE ID',
+  'ANDREINA': 'BINANCE ID',
+  'IPTV Premium': 'BINANCE ID',
+  'Ederson': 'BINANCE ID',
   'YPP': 'BILLETERA CRIPTO',
   'YPPest': 'BILLETERA CRIPTO',
-  'José torres': 'BINANCE ID'
+  'Sofi correos': 'BINANCE ID',
+  'Cyber': 'YAPE',
+  'SH': 'WEB',
+  'Luis ': 'BINANCE ID',
+  'RusselPLATA': 'PLIN',
+  'RusselORO': 'PLIN',
+  'CHIGUI': 'WEB'
 };
 const PAYMENT_TYPE_CLASSES = {
   'YAPE': 'ptype-yape',
@@ -1686,4 +1713,5 @@ goStep(1);
 </script>
 </body>
 </html>
+
 
