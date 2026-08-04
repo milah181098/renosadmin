@@ -157,7 +157,9 @@
     color:var(--faint);
     transition:.25s;
     font-family:var(--font-body);
+    cursor:pointer;
   }
+  .step-pill:hover:not(.active){ color:var(--text); background:rgba(255,255,255,0.04); }
   .step-pill.active{
     background:var(--brand-grad);
     color:#060710;
@@ -223,6 +225,13 @@
     border:1px solid var(--border);
   }
   .btn-ghost:hover{color:var(--text); border-color:var(--brand-2);}
+  .btn-whatsapp{
+    background: linear-gradient(120deg, #34e07a, #1ddb8b 55%, #12a86a);
+    color:#04150d;
+    box-shadow:0 6px 20px -6px rgba(29,219,139,0.55);
+  }
+  .btn-whatsapp:hover{transform:translateY(-1px); box-shadow:0 10px 26px -6px rgba(29,219,139,0.75);}
+  .btn-whatsapp:active{transform:translateY(0);}
   .btn-mini{
     padding:5px 11px;
     font-size:11px;
@@ -434,6 +443,26 @@
     flex-shrink:0;
   }
   .currency-toggle:hover{background:rgba(255,182,72,0.2); border-color:var(--warn); color:#fff;}
+  /* Etiqueta de referencia del tipo de método de pago — solo visual, no clickeable */
+  .payment-type-badge{
+    display:inline-block;
+    margin-top:6px;
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border-radius:6px;
+    border:1px solid;
+    font-family:var(--font-mono);
+    white-space:nowrap;
+  }
+  .ptype-yape{ background:rgba(155,123,255,0.16); border-color:rgba(155,123,255,0.55); color:#c9b8ff; }
+  .ptype-plin{ background:rgba(56,189,248,0.16); border-color:rgba(56,189,248,0.55); color:#7dd3fc; }
+  .ptype-binance{ background:rgba(255,214,10,0.16); border-color:rgba(255,214,10,0.55); color:#ffe066; }
+  .ptype-cripto{ background:#000000; border-color:rgba(255,255,255,0.35); color:#f2f3fb; }
+  .ptype-web{ background:rgba(255,95,174,0.16); border-color:rgba(255,95,174,0.55); color:#ff9ecb; }
+  .ptype-otro{ background:rgba(139,143,163,0.14); border-color:rgba(139,143,163,0.4); color:#c7c9d6; }
   /* Total del lote — resaltado para no confundirlo con el costo unitario */
   .total-chip{
     display:inline-block;
@@ -538,10 +567,10 @@
 </div>
 <div class="sub">panel de control · renovaciones diarias · stock y proveedores</div>
 <div class="steps">
-  <div class="step-pill" id="pill-1">1. Pegar</div>
-  <div class="step-pill" id="pill-2">2. Revisar</div>
-  <div class="step-pill" id="pill-3">3. Precios + Stock</div>
-  <div class="step-pill" id="pill-4">4. Tablas Finales</div>
+  <div class="step-pill" id="pill-1" onclick="goStep(1)">1. Pegar</div>
+  <div class="step-pill" id="pill-2" onclick="goToStep2()">2. Revisar</div>
+  <div class="step-pill" id="pill-3" onclick="goPricing()">3. Precios + Stock</div>
+  <div class="step-pill" id="pill-4" onclick="generarFinal()">4. Tablas Finales</div>
 </div>
 <!-- STEP 1 -->
 <div class="card" id="step1">
@@ -567,8 +596,8 @@
   <div id="previewTableWrap"></div>
   <div class="hint">Haz clic en cualquier celda para corregirla antes de continuar.</div>
   <div class="row">
-    <button class="btn-ghost" onclick="goStep(1)">← Volver</button>
     <button class="btn-primary" onclick="goPricing()">Continuar a precios →</button>
+    <button class="btn-ghost" onclick="goStep(1)">← Volver</button>
   </div>
 </div>
 <!-- STEP 3 -->
@@ -602,18 +631,22 @@
   </div>
   <div id="customRowsWrap"></div>
   <div class="row" style="margin-top:20px;">
-    <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
     <button class="btn-primary" onclick="generarFinal()">Generar Todo →</button>
+    <button class="btn-ghost" onclick="goStep(2)">← Volver</button>
   </div>
 </div>
 <!-- STEP 4 -->
 <div class="card" id="paymentsCard" style="display:none;">
-  <h2>Desglose de pagos a proveedores (Incluye Stock)</h2>
-  <div class="hint" style="margin-bottom:14px;">Haz clic sobre cualquier chip de "Total Lote" para copiar el monto. Haz clic sobre el botón de moneda (USDT / S/.) para cambiar la moneda de ese costo unitario. Haz clic sobre cualquier correo en "Cuentas de este pago" (resaltado en amarillo) para copiarlo. Cuando un mismo proveedor aparece en más de un lote (aunque sean plataformas distintas), se muestra una fila de subtotal con la suma total a pagarle.</div>
+  <h2>Desglose de pagos a proveedores</h2>
   <div class="totals">
     <div class="total-box"><div class="lbl">Pendiente</div><div class="val pend" id="totPend"></div></div>
     <div class="total-box"><div class="lbl">Pagado</div><div class="val pag" id="totPaid"></div></div>
     <div class="total-box"><div class="lbl">General Total</div><div class="val gen" id="totGen"></div></div>
+  </div>
+  <div class="row" style="margin-top:6px; margin-bottom:4px; gap:12px;">
+    <button class="btn-primary" onclick="window.open('https://www.binance.com/es/my/payment/send','_blank')">💸 PAGAR A BINANCE ID</button>
+    <button class="btn-primary" onclick="window.open('https://www.binance.com/es/my/wallet/account/main/withdrawal/crypto/USDT','_blank')">🏦 PAGAR A BILLETERA BINANCE</button>
+    <button class="btn-whatsapp" onclick="copyWhatsappSummary()">📲 Copiar resumen para WhatsApp</button>
   </div>
   <div id="paymentsWrap"></div>
   <div class="row">
@@ -679,7 +712,7 @@ const PROVIDER_PAYMENTS = {
   'Michi': '976132716',
   'Allcheap': 'Mr_nike45@hotmail.com',
   'Alex correos': '281736466',
-  'Qaway': 'https://qawayshop.lat/mis-cuentas/',
+  'Qaway': 'Web',
   'Imperio': '585003592',
   'Boxtmail': '917494877',
   'Streamplay': '904013433',
@@ -699,9 +732,9 @@ const PROVIDER_PAYMENTS = {
   'SH': 'https://nfmail.online/panel',
   'Otros': '',
   'Luis ': '353963220',
-  'CHIGUI': 'https://chiguistore.com/mi-cuenta/',
-  'RusselORO': '935748872',
-  'RusselPLATA': '935748872'
+  'RusselPLATA': '25',
+  'RusselORO': '27',
+  'CHIGUI': 'https://chiguistore.com/mi-cuenta/'
 };
 const PRICING_RULES = {
   'Prime Video||BLIX': {price: 2, currency: 'USDT'},
@@ -734,6 +767,43 @@ const PRICING_RULES = {
   'Crunchyroll||Wow': {price: 1.7, currency: 'USDT'}
 };
 const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
+/* Tipo de método de pago por proveedor — SOLO es una etiqueta visual de referencia
+   (no es un botón, no hace nada al hacer clic). Edítalo aquí a mano: asigna a cada
+   proveedor uno de estos 6 valores EXACTOS:
+   'YAPE' | 'PLIN' | 'BINANCE ID' | 'BILLETERA CRIPTO' | 'WEB' | 'OTRO'
+   Si un proveedor no aparece en esta lista, se muestra "OTRO" por defecto. */
+const PROVIDER_PAYMENT_TYPES = {
+  'Qaway': 'WEB',
+  'SH': 'WEB',
+  'YPP': 'BILLETERA CRIPTO',
+  'YPPest': 'BILLETERA CRIPTO',
+  'José torres': 'BINANCE ID'
+};
+const PAYMENT_TYPE_CLASSES = {
+  'YAPE': 'ptype-yape',
+  'PLIN': 'ptype-plin',
+  'BINANCE ID': 'ptype-binance',
+  'BILLETERA CRIPTO': 'ptype-cripto',
+  'WEB': 'ptype-web',
+  'OTRO': 'ptype-otro'
+};
+function getPaymentTypeForProvider(providerName){
+  const pname = (providerName || '').trim();
+  if(!pname) return 'OTRO';
+  const match = PROVIDER_NAMES.find(p => p.toLowerCase() === pname.toLowerCase());
+  const type = PROVIDER_PAYMENT_TYPES[match || pname];
+  return type || 'OTRO';
+}
+function paymentTypeBadgeHtml(providerName){
+  const type = getPaymentTypeForProvider(providerName);
+  const cls = PAYMENT_TYPE_CLASSES[type] || PAYMENT_TYPE_CLASSES['OTRO'];
+  return `<span class="payment-type-badge ${cls}">${escapeHtml(type)}</span>`;
+}
+/* Contenido completo de la celda "Total Lote": el chip del monto + debajo, la etiqueta
+   del tipo de método de pago (referencia visual, no clickeable). */
+function totalCellContent(total, currency, providerName){
+  return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">${totalChipHtml(total, currency)}${paymentTypeBadgeHtml(providerName)}</div>`;
+}
 function findProviderMatch(name){
   if(!name) return '';
   const norm = name.trim().toLowerCase();
@@ -745,6 +815,14 @@ function escapeHtml(str){
 }
 function escapeJsStr(str){
   return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+/* Detecta si un método de pago es en realidad un enlace web (empieza con http:// o https://) */
+function isUrlLike(str){
+  return !!str && /^https?:\/\//i.test(str.trim());
+}
+/* Etiqueta dinámica del botón de método de pago: si es un enlace, invita a abrirlo en vez de copiarlo */
+function paymentButtonLabel(method){
+  return isUrlLike(method) ? '🔗 Abrir Web' : '💳 Método';
 }
 function buildProviderDatalistOptions(){
   return PROVIDER_NAMES.map(p => `<option value="${escapeHtml(p)}">`).join('');
@@ -811,6 +889,11 @@ function updatePaymentMethodText(kind, key, val){
 function copyPaymentMethod(kind, key){
   const ent = getPayEntity(kind, key); if(!ent) return;
   if(!ent.paymentMethod || !ent.paymentMethod.trim()){ showToast('Este proveedor no tiene método de pago asignado'); return; }
+  if(isUrlLike(ent.paymentMethod)){
+    window.open(ent.paymentMethod.trim(), '_blank');
+    markEntityPaid(kind, key, true);
+    return;
+  }
   executeCopy(ent.paymentMethod, '¡Método de pago copiado! ✓');
   markEntityPaid(kind, key, true);
 }
@@ -884,6 +967,16 @@ function goStep(n){
   }
   if(n!==4) document.getElementById('paymentsCard').style.display='none';
   setPill(n);
+}
+/* Navegación libre al Paso 2 desde el stepper: si aún no se organizó nada pero hay texto
+   pegado sin procesar, lo organiza automáticamente. Si ya hay cuentas cargadas, solo
+   cambia de paso (no vuelve a parsear, para no perder ediciones ya hechas). */
+function goToStep2(){
+  if(accounts.length === 0){
+    const raw = document.getElementById('rawInput').value;
+    if(raw.trim()){ organizar(); return; }
+  }
+  goStep(2);
 }
 function canonicalizePlatform(text){
   if(!text) return null;
@@ -986,19 +1079,28 @@ function renderPreview(){
   });
 }
 function groupKey(a){ return a.platform + '||' + a.observation; }
+/* Sincroniza `groups` con la lista actual de `accounts`: conserva el precio, moneda,
+   proveedor y método de pago ya asignados a un grupo existente, y solo inicializa con
+   las reglas por defecto los grupos nuevos. Así, navegar entre pasos con el stepper
+   nunca borra los precios que ya escribiste. */
 function goPricing(){
-  groups = {};
+  const newGroups = {};
   accounts.forEach(a=>{
     const k = groupKey(a);
-    if(!groups[k]) {
-      const matched = findProviderMatch(a.observation);
-      const rule = matched ? PRICING_RULES[a.platform + '||' + matched] : null;
-      groups[k] = {platform:a.platform, observation:a.observation, count:0, price: rule ? rule.price : 0, priceSet: !!rule, currency: rule ? rule.currency : 'USDT', paid:false, accountIds:[],
-        providerName: matched, paymentMethod: matched ? PROVIDER_PAYMENTS[matched] : ''};
+    if(!newGroups[k]){
+      if(groups[k]){
+        newGroups[k] = Object.assign({}, groups[k], {count:0, accountIds:[]});
+      } else {
+        const matched = findProviderMatch(a.observation);
+        const rule = matched ? PRICING_RULES[a.platform + '||' + matched] : null;
+        newGroups[k] = {platform:a.platform, observation:a.observation, count:0, price: rule ? rule.price : 0, priceSet: !!rule, currency: rule ? rule.currency : 'USDT', paid:false, accountIds:[],
+          providerName: matched, paymentMethod: matched ? PROVIDER_PAYMENTS[matched] : ''};
+      }
     }
-    groups[k].count++;
-    groups[k].accountIds.push(a.id);
+    newGroups[k].count++;
+    newGroups[k].accountIds.push(a.id);
   });
+  groups = newGroups;
   renderPricingList();
   renderCustomRows();
   goStep(3);
@@ -1319,6 +1421,11 @@ function copyProviderBucketPaymentMethod(bucketKey){
   const bucket = buckets[bucketKey];
   if(!bucket){ showToast('No se encontró el proveedor'); return; }
   if(!bucket.paymentMethod || !bucket.paymentMethod.trim()){ showToast('Este proveedor no tiene método de pago asignado'); return; }
+  if(isUrlLike(bucket.paymentMethod)){
+    window.open(bucket.paymentMethod.trim(), '_blank');
+    bucket.items.forEach(item => markEntityPaid(item.kind, item.key, true));
+    return;
+  }
   executeCopy(bucket.paymentMethod, '¡Método de pago copiado! ✓');
   bucket.items.forEach(item => markEntityPaid(item.kind, item.key, true));
 }
@@ -1332,7 +1439,7 @@ function refreshBucketSubtotal(providerName){
   const bucket = buckets[bucketKey];
   if(!bucket) return;
   const cell = row.querySelector('[data-role="subtotal-amount"]');
-  if(cell) cell.innerHTML = buildSubtotalChips(bucket);
+  if(cell) cell.innerHTML = `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">${buildSubtotalChips(bucket)}${paymentTypeBadgeHtml(bucket.providerName)}</div>`;
 }
 function renderPaymentItemRow(item){
   const total = (item.price||0) * (item.count||0);
@@ -1353,11 +1460,11 @@ function renderPaymentItemRow(item){
           <button type="button" class="btn-mini currency-toggle" onclick="toggleEntityCurrency('group','${item.key}')" title="Clic para cambiar entre USDT y Soles">${g.currency}</button>
         </div>
       </td>
-      <td data-role="total">${totalChipHtml(total, g.currency)}</td>
+      <td data-role="total">${totalCellContent(total, g.currency, g.providerName)}</td>
       <td>
         <div class="col-actions" style="margin-bottom:0;">
           <button class="btn-mini" onclick="copyProviderMessage('${item.key}')">📋 Mensaje</button>
-          <button class="btn-mini" onclick="copyPaymentMethod('group','${item.key}')">💳 Método</button>
+          <button class="btn-mini" onclick="copyPaymentMethod('group','${item.key}')">${paymentButtonLabel(g.paymentMethod)}</button>
         </div>
       </td>
     </tr>
@@ -1382,10 +1489,10 @@ function renderPaymentItemRow(item){
           <button type="button" class="btn-mini currency-toggle" onclick="toggleEntityCurrency('youtube', null)" title="Clic para cambiar entre USDT y Soles">${youtubeRow.currency}</button>
         </div>
       </td>
-      <td data-role="total">${totalChipHtml(total, youtubeRow.currency)}</td>
+      <td data-role="total">${totalCellContent(total, youtubeRow.currency, youtubeRow.providerName)}</td>
       <td>
         <div class="col-actions" style="margin-bottom:0;">
-          <button class="btn-mini" onclick="copyPaymentMethod('youtube', null)">💳 Método</button>
+          <button class="btn-mini" onclick="copyPaymentMethod('youtube', null)">${paymentButtonLabel(youtubeRow.paymentMethod)}</button>
         </div>
       </td>
     </tr>`;
@@ -1407,10 +1514,10 @@ function renderPaymentItemRow(item){
         <button type="button" class="btn-mini currency-toggle" onclick="toggleEntityCurrency('custom', ${idx})" title="Clic para cambiar entre USDT y Soles">${row.currency}</button>
       </div>
     </td>
-    <td data-role="total">${totalChipHtml(total, row.currency)}</td>
+    <td data-role="total">${totalCellContent(total, row.currency, row.providerName)}</td>
     <td>
       <div class="col-actions" style="margin-bottom:0;">
-        <button class="btn-mini" onclick="copyPaymentMethod('custom', ${idx})">💳 Método</button>
+        <button class="btn-mini" onclick="copyPaymentMethod('custom', ${idx})">${paymentButtonLabel(row.paymentMethod)}</button>
       </div>
     </td>
   </tr>`;
@@ -1434,11 +1541,11 @@ function renderPayments(){
           Σ Total a ${escapeHtml(bucket.providerName)} <span class="badge badge-violet">${bucket.items.length} lotes</span>
         </td>
         <td></td>
-        <td data-role="subtotal-amount">${buildSubtotalChips(bucket)}</td>
+        <td data-role="subtotal-amount"><div style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">${buildSubtotalChips(bucket)}${paymentTypeBadgeHtml(bucket.providerName)}</div></td>
         <td>
           <div class="col-actions" style="margin-bottom:0;">
             ${hasMessages ? `<button class="btn-mini" onclick="copyProviderBucketMessage('${safeBucketKey}')">📋 Mensaje</button>` : ''}
-            <button class="btn-mini" onclick="copyProviderBucketPaymentMethod('${safeBucketKey}')">💳 Método</button>
+            <button class="btn-mini" onclick="copyProviderBucketPaymentMethod('${safeBucketKey}')">${paymentButtonLabel(bucket.paymentMethod)}</button>
           </div>
         </td>
       </tr>`;
@@ -1460,7 +1567,7 @@ function updateGroupUnitCost(key, val){
     }).length;
     const total = g.price * dynamicCount;
     const totalCell = tr.querySelector('[data-role="total"]');
-    if(totalCell) totalCell.innerHTML = totalChipHtml(total, g.currency);
+    if(totalCell) totalCell.innerHTML = totalCellContent(total, g.currency, g.providerName);
   }
   refreshBucketSubtotal(g.providerName);
   updateTotals();
@@ -1471,7 +1578,7 @@ function updateYoutubeUnitCost(val){
   if(tr){
     const total = youtubeRow.price * youtubeRow.count;
     const totalCell = tr.querySelector('[data-role="total"]');
-    if(totalCell) totalCell.innerHTML = totalChipHtml(total, youtubeRow.currency);
+    if(totalCell) totalCell.innerHTML = totalCellContent(total, youtubeRow.currency, youtubeRow.providerName);
   }
   refreshBucketSubtotal(youtubeRow.providerName);
   updateTotals();
@@ -1484,7 +1591,7 @@ function updateCustomRowUnitCost(idx, val){
   if(tr){
     const total = row.price * row.count;
     const totalCell = tr.querySelector('[data-role="total"]');
-    if(totalCell) totalCell.innerHTML = totalChipHtml(total, row.currency);
+    if(totalCell) totalCell.innerHTML = totalCellContent(total, row.currency, row.providerName);
   }
   refreshBucketSubtotal(row.providerName);
   updateTotals();
@@ -1534,6 +1641,33 @@ function updateTotals(){
   document.getElementById('totPaid').innerHTML = `<div>${paidUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:#a3e635">S/. ${paidSoles.toFixed(2)}</div>`;
   document.getElementById('totGen').innerHTML = `<div>${genUsdt.toFixed(2)} <span style="font-size:11px;color:var(--muted)">USDT</span></div><div style="font-size:15px; margin-top:4px; color:var(--brand-2)">S/. ${genSoles.toFixed(2)}</div>`;
 }
+/* Construye un resumen compacto (texto plano, listo para WhatsApp) de todas las cuentas a renovar:
+   plataforma, proveedor, unidades y costo del lote, seguido del total general por moneda. */
+function buildWhatsappSummary(){
+  const buckets = computePaymentBuckets();
+  const lines = [];
+  const totalsByCurrency = {};
+  Object.values(buckets).forEach(bucket=>{
+    bucket.items.forEach(item=>{
+      if(!item.count || item.count <= 0) return;
+      const total = (item.price||0) * item.count;
+      const providerLabel = item.providerName && item.providerName.trim() ? item.providerName.trim() : 'Sin proveedor';
+      lines.push(`${item.platform} (${providerLabel}): ${item.count} und - ${formatMoney(total, item.currency).trim()}`);
+      totalsByCurrency[item.currency] = (totalsByCurrency[item.currency]||0) + total;
+    });
+  });
+  if(lines.length === 0) return '';
+  let msg = '📦 *Resumen de renovaciones y pagos*\n\n' + lines.join('\n');
+  msg += '\n\n💰 *Total a pagar:*';
+  if(totalsByCurrency['USDT']) msg += `\nUSDT: ${totalsByCurrency['USDT'].toFixed(2)}`;
+  if(totalsByCurrency['S/.']) msg += `\nS/.: ${totalsByCurrency['S/.'].toFixed(2)}`;
+  return msg;
+}
+function copyWhatsappSummary(){
+  const msg = buildWhatsappSummary();
+  if(!msg){ showToast('No hay datos para generar el resumen'); return; }
+  executeCopy(msg, '¡Resumen copiado para WhatsApp! ✓');
+}
 function reset(){
   accounts = []; groups = {};
   youtubeRow = { platform: 'YouTube', count: 0, price: 0, currency: 'USDT', paid: false, providerName: '', paymentMethod: '' };
@@ -1552,5 +1686,4 @@ goStep(1);
 </script>
 </body>
 </html>
-
 
