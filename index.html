@@ -576,7 +576,7 @@
 <div class="card" id="step1">
   <h2>Paso 1 — Pega tu listado crudo</h2>
   <textarea id="rawInput" placeholder="Pega aquí el listado completo de cuentas de manera libre..."></textarea>
-  <div class="hint">Filtros desactivados: se procesará el 100% de la información ingresada.</div>
+  <div class="hint">Acepta el formato nuevo (Plataforma / PLATAFORMA / Plan / Proveedor / Correo / Clave / AAAA-MM-DD / Estado) y también el formato anterior.</div>
   <div class="row">
     <button class="btn-primary" onclick="organizar()">Organizar Todo</button>
   </div>
@@ -738,6 +738,15 @@ const PROVIDER_PAYMENTS = {
   'Wow tarjetas': '1253616962',
   'Javy tarjetas': '434355728'
 };
+/* ── Alias de proveedores ──
+   Si en tu listado el proveedor aparece con otro nombre, agrégalo aquí:
+   'NOMBRE COMO APARECE EN EL LISTADO': 'Nombre exacto en PROVIDER_PAYMENTS'
+   (no importa mayúsculas/minúsculas) */
+const PROVIDER_ALIASES = {
+  'CHIGUISTORE': 'CHIGUI',
+  'CHIGUI STORE': 'CHIGUI',
+  'ZONA ZERO': 'Zona'
+};
 const PRICING_RULES = {
   'Prime Video||BLIX': {price: 2, currency: 'USDT'},
   'Prime Video||Qaway': {price: 1.5, currency: 'USDT'},
@@ -769,6 +778,12 @@ const PRICING_RULES = {
   'Crunchyroll||Wow': {price: 1.7, currency: 'USDT'},
   'YouTube Premium||': {price: 5, currency: 'S/.'}
 };
+/* Busca la regla de precio sin distinguir mayúsculas/minúsculas (ej: 'CHIGUI' encuentra 'Chigui') */
+function findPricingRule(platform, provider){
+  const target = (platform + '||' + (provider || '')).trim().toLowerCase();
+  const key = Object.keys(PRICING_RULES).find(k => k.trim().toLowerCase() === target);
+  return key ? PRICING_RULES[key] : null;
+}
 const PROVIDER_NAMES = Object.keys(PROVIDER_PAYMENTS);
 /* Tipo de método de pago por proveedor — SOLO es una etiqueta visual de referencia
    (no es un botón, no hace nada al hacer clic). Edítalo aquí a mano: asigna a cada
@@ -819,7 +834,7 @@ const PAYMENT_TYPE_CLASSES = {
 function getPaymentTypeForProvider(providerName){
   const pname = (providerName || '').trim();
   if(!pname) return 'OTRO';
-  const match = PROVIDER_NAMES.find(p => p.toLowerCase() === pname.toLowerCase());
+  const match = PROVIDER_NAMES.find(p => p.trim().toLowerCase() === pname.toLowerCase());
   const type = PROVIDER_PAYMENT_TYPES[match || pname];
   return type || 'OTRO';
 }
@@ -836,8 +851,23 @@ function totalCellContent(total, currency, providerName){
 function findProviderMatch(name){
   if(!name) return '';
   const norm = name.trim().toLowerCase();
-  const hit = PROVIDER_NAMES.find(p => p.toLowerCase() === norm);
+  const hit = PROVIDER_NAMES.find(p => p.trim().toLowerCase() === norm);
   return hit || '';
+}
+/* Convierte el nombre de proveedor tal como viene en el listado (ej: "ALLCHEAP", "ZONA ZERO",
+   "CHIGUISTORE") al nombre registrado en PROVIDER_PAYMENTS. Orden de búsqueda:
+   1) alias  2) nombre completo  3) primera palabra. Si no hay coincidencia, deja el texto tal cual. */
+function normalizeProvider(raw){
+  const txt = (raw || '').trim();
+  if(!txt) return 'Sin Proveedor';
+  const up = txt.toUpperCase();
+  for(const [alias, real] of Object.entries(PROVIDER_ALIASES)){
+    if(alias.trim().toUpperCase() === up) return real;
+  }
+  const full = findProviderMatch(txt);
+  if(full) return full;
+  const first = txt.split(/\s+/)[0];
+  return findProviderMatch(first) || txt;
 }
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -972,10 +1002,31 @@ function copyQuickLookup(){
   executeCopy(quickLookupMethod, '¡Método de pago copiado! ✓');
 }
 const EMAIL_RE = /[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/;
+/* Fecha formato anterior: DD/MM/AAAA, DD-MM-AA, etc. */
 const DATE_RE = /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})\b/;
+/* Fecha formato nuevo: AAAA-MM-DD */
+const ISO_DATE_RE = /\b(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/;
+/* Línea de estado del formato nuevo: "4 DÍAS REST." o "VENCIDO" */
+const STATUS_RE = /d[ií]as?\s*rest|vencid/i;
 /* Líneas que son solo una observación/nota (ej: "reemplazo de correo@x.com") aunque contengan un correo,
    no deben interpretarse como el inicio de una cuenta nueva. */
 const NOTE_ONLY_RE = /reemplazo/i;
+function isPlatformLine(line){
+  return PLATFORM_PATTERNS.some(p => p.re.test(line));
+}
+/* Devuelve {y, mo, d, iso} si la línea contiene una fecha (AAAA-MM-DD o DD/MM/AAAA), o null. */
+function parseDateLine(line){
+  if(!line) return null;
+  let m = line.match(ISO_DATE_RE);
+  if(m) return {y:parseInt(m[1]), mo:parseInt(m[2]), d:parseInt(m[3]), iso:true};
+  m = line.match(DATE_RE);
+  if(m){
+    let y = parseInt(m[3]);
+    if(y < 100) y += 2000;
+    return {y, mo:parseInt(m[2]), d:parseInt(m[1]), iso:false};
+  }
+  return null;
+}
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1014,55 +1065,79 @@ function canonicalizePlatform(text){
   }
   return text.trim();
 }
+/* Lee el listado crudo. Reconoce dos formatos (las líneas vacías se ignoran):
+
+   FORMATO NUEVO                    FORMATO ANTERIOR
+   Netflix          (plataforma)    Plataforma
+   NETFLIX          (plataforma)    correo@x.com
+   PREMIUM 4K       (plan)          clave
+   ALLCHEAP         (proveedor)     Proveedor
+   correo@x.com                     (fecha DD/MM/AAAA)
+   clave
+   2026-10-07       (fecha)
+   4 DÍAS REST.     (estado)
+
+   Se detecta el formato nuevo cuando la línea 2 posiciones después del correo es una fecha. */
 function organizar(){
   const raw = document.getElementById('rawInput').value;
   const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
   accounts = [];
   let idx = 0;
   for(let i = 0; i < lines.length; i++){
-    if(EMAIL_RE.test(lines[i]) && !NOTE_ONLY_RE.test(lines[i])){
-      const emailText = lines[i];
-      const platformRaw = i > 0 ? lines[i-1] : '';
-      const passwordText = (i + 1) < lines.length ? lines[i+1] : '';
-      const providerRaw = (i + 2) < lines.length ? lines[i+2] : '';
-      let platformName = canonicalizePlatform(platformRaw);
-      if(!platformName) platformName = 'Otros';
-      let observation = 'Sin Proveedor';
-      if(providerRaw){
-        const firstWord = providerRaw.split(/\s+/)[0];
-        if(firstWord) observation = firstWord;
-      }
-      let dueDateStr = '—';
-      let days = null;
-      let dateMatch = null;
-      for(let j = i+3; j <= i+4 && j < lines.length; j++){
-        if(DATE_RE.test(lines[j])){
-          dateMatch = lines[j].match(DATE_RE);
+    if(!EMAIL_RE.test(lines[i]) || NOTE_ONLY_RE.test(lines[i])) continue;
+    const emailText = lines[i];
+    const nextLine = (i + 1) < lines.length ? lines[i+1] : '';
+    const passwordText = (nextLine && !parseDateLine(nextLine) && !EMAIL_RE.test(nextLine)) ? nextLine : '';
+    const isNewFormat = (i + 2) < lines.length && !!parseDateLine(lines[i+2]);
+    let platformName = null;
+    let providerRaw = '';
+    let dateInfo = null;
+    if(isNewFormat){
+      /* Proveedor = línea justo antes del correo. Plataforma = se busca hacia arriba
+         (sin pasar al bloque de la cuenta anterior). */
+      providerRaw = i > 0 ? lines[i-1] : '';
+      for(let j = i - 1; j >= Math.max(0, i - 5); j--){
+        const l = lines[j];
+        if(EMAIL_RE.test(l) || parseDateLine(l) || STATUS_RE.test(l)) break;
+        if(isPlatformLine(l)){
+          platformName = canonicalizePlatform(l);
+          if(j === i - 1) providerRaw = ''; // la línea anterior era la plataforma, no hay proveedor
           break;
         }
       }
-      if(dateMatch){
-        let d=parseInt(dateMatch[1]), mo=parseInt(dateMatch[2]), y=parseInt(dateMatch[3]);
-        if(y<100) y+=2000;
-        let dueDate = new Date(y, mo-1, d);
-        const today = new Date();
-        if((dueDate-today)/86400000 < -180) dueDate = new Date(y+1, mo-1, d);
-        const t2 = new Date(); t2.setHours(0,0,0,0);
-        const d2 = new Date(dueDate); d2.setHours(0,0,0,0);
-        days = Math.round((d2-t2)/86400000);
-        dueDateStr = dueDate.toLocaleDateString('es-PE');
+      dateInfo = parseDateLine(lines[i+2]);
+    } else {
+      /* Formato anterior */
+      platformName = canonicalizePlatform(i > 0 ? lines[i-1] : '');
+      providerRaw = (i + 2) < lines.length ? lines[i+2] : '';
+      for(let j = i+3; j <= i+4 && j < lines.length; j++){
+        const d = parseDateLine(lines[j]);
+        if(d){ dateInfo = d; break; }
       }
-      accounts.push({
-        id: 'acc' + (idx++),
-        platform: platformName,
-        email: emailText,
-        password: passwordText || '(no detectada)',
-        dueDateStr: dueDateStr,
-        days: days,
-        observation: observation,
-        renewedPaid: false
-      });
     }
+    if(!platformName) platformName = 'Otros';
+    const observation = normalizeProvider(providerRaw);
+    let dueDateStr = '—';
+    let days = null;
+    if(dateInfo){
+      let dueDate = new Date(dateInfo.y, dateInfo.mo-1, dateInfo.d);
+      const today = new Date();
+      if(!dateInfo.iso && (dueDate-today)/86400000 < -180) dueDate = new Date(dateInfo.y+1, dateInfo.mo-1, dateInfo.d);
+      const t2 = new Date(); t2.setHours(0,0,0,0);
+      const d2 = new Date(dueDate); d2.setHours(0,0,0,0);
+      days = Math.round((d2-t2)/86400000);
+      dueDateStr = dueDate.toLocaleDateString('es-PE');
+    }
+    accounts.push({
+      id: 'acc' + (idx++),
+      platform: platformName,
+      email: emailText,
+      password: passwordText || '(no detectada)',
+      dueDateStr: dueDateStr,
+      days: days,
+      observation: observation,
+      renewedPaid: false
+    });
   }
   if(accounts.length===0){
     showToast(raw.trim() ? 'No se detectaron correos válidos, puedes continuar igual.' : 'Sin cuentas nuevas — puedes continuar solo con stock adicional.');
@@ -1121,7 +1196,7 @@ function goPricing(){
         newGroups[k] = Object.assign({}, groups[k], {count:0, accountIds:[]});
       } else {
         const matched = findProviderMatch(a.observation);
-        const rule = matched ? PRICING_RULES[a.platform + '||' + matched] : null;
+        const rule = matched ? findPricingRule(a.platform, matched) : null;
         newGroups[k] = {platform:a.platform, observation:a.observation, count:0, price: rule ? rule.price : 0, priceSet: !!rule, currency: rule ? rule.currency : 'USDT', paid:false, accountIds:[],
           providerName: matched, paymentMethod: matched ? PROVIDER_PAYMENTS[matched] : ''};
       }
