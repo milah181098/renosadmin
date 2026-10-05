@@ -736,7 +736,9 @@ const PROVIDER_PAYMENTS = {
   'RusselORO': '27',
   'CHIGUI': 'https://chiguistore.com/mi-cuenta/',
   'Wow tarjetas': '1253616962',
-  'Javy tarjetas': '434355728'
+  'Javy tarjetas': '434355728',
+  'Julio': '155744961',
+  'Wow Store': 'https://wowstorepro.com'
 };
 /* ── Alias de proveedores ──
    Si en tu listado el proveedor aparece con otro nombre, agrégalo aquí:
@@ -764,7 +766,7 @@ const PRICING_RULES = {
   'Crunchyroll||Streamplay': {price: 6, currency: 'S/.'},
   'Paramount+||Ederson': {price: 1, currency: 'USDT'},
   'Netflix||Allcheap': {price: 10, currency: 'USDT'},
-  'Netflix||Johen': {price: 10, currency: 'USDT'},
+  'Netflix||Johen': {price: 9, currency: 'USDT'},
   'Netflix||YPP': {price: 10.8, currency: 'USDT'},
   'Netflix||SH': {price: 10, currency: 'USDT'},
   'Netflix||DAMI': {price: 9, currency: 'USDT'},
@@ -775,7 +777,7 @@ const PRICING_RULES = {
   'Netflix||YPPest': {price: 5.3, currency: 'USDT'},
   'Netflix||Aluria': {price: 35, currency: 'S/.'},
   'Crunchyroll||Qaway': {price: 1.5, currency: 'USDT'},
-  'Crunchyroll||Wow': {price: 1.7, currency: 'USDT'},
+  'Crunchyroll||Wow Store': {price: 1.7, currency: 'USDT'},
   'YouTube Premium||': {price: 5, currency: 'S/.'}
 };
 /* Busca la regla de precio sin distinguir mayúsculas/minúsculas (ej: 'CHIGUI' encuentra 'Chigui') */
@@ -821,7 +823,9 @@ const PROVIDER_PAYMENT_TYPES = {
   'Luis ': 'BINANCE ID',
   'RusselPLATA': 'PLIN',
   'RusselORO': 'PLIN',
-  'CHIGUI': 'WEB'
+  'CHIGUI': 'WEB',
+  'Julio': 'BINANCE ID',
+  'Wow Store': 'WEB'
 };
 const PAYMENT_TYPE_CLASSES = {
   'YAPE': 'ptype-yape',
@@ -1355,10 +1359,64 @@ function generarFinal(){
     });
     tablesHtml += `</div>`;
   });
-  document.getElementById('finalTablesWrap').innerHTML = tablesHtml || '<div class="empty">Sin cuentas procesadas</div>';
+  tablesHtml += buildNewStockTableHtml();
+  document.getElementById('finalTablesWrap').innerHTML = tablesHtml || '<div class="empty">Sin cuentas ni stock nuevo procesados</div>';
   goStep(4);
   renderPayments();
   document.getElementById('paymentsCard').style.display = 'block';
+}
+/* Lista del stock nuevo solicitado en el Paso 3 (YouTube manual + lotes adicionales con cantidad y nombre). */
+function getNewStockItems(){
+  const items = [];
+  if(youtubeRow.count > 0){
+    items.push({platform:'YouTube (Manual)', count:youtubeRow.count, price:youtubeRow.price, currency:youtubeRow.currency, providerName:youtubeRow.providerName});
+  }
+  customRows.forEach(row => {
+    if(row.count > 0 && row.platform.trim()){
+      items.push({platform:row.platform.trim(), count:row.count, price:row.price, currency:row.currency, providerName:row.providerName});
+    }
+  });
+  return items;
+}
+/* Bloque "Stock nuevo solicitado" para las tablas finales del Paso 4. */
+function buildNewStockTableHtml(){
+  const items = getNewStockItems();
+  if(items.length === 0) return '';
+  const totalUnits = items.reduce((s, it) => s + it.count, 0);
+  let html = `<div class="platform-block" style="--pf-color:#2bd9c9">
+    <div class="platform-title" style="--pf-color:#2bd9c9">
+      <span>🛒 Stock nuevo solicitado <span class="badge badge-teal">${totalUnits} und en total</span></span>
+      <div class="col-actions" style="margin-bottom:0;">
+        <button class="btn-mini" onclick="copyNewStockList()">📋 Copiar lista de stock</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+      <thead><tr>
+        <th>Plataforma</th><th class="th-provider">Proveedor</th><th>Unidades</th><th>Costo Unitario</th><th>Total</th>
+      </tr></thead><tbody>`;
+  items.forEach(it => {
+    const pfColor = getPlatformColor(canonicalizePlatform(it.platform));
+    const provider = (it.providerName || '').trim() || 'Sin proveedor';
+    html += `<tr>
+      <td><span class="pf-dot" style="background:${pfColor}; color:${pfColor};"></span>${escapeHtml(it.platform)}</td>
+      <td>${escapeHtml(provider)}</td>
+      <td>${it.count}</td>
+      <td>${formatMoney(it.price || 0, it.currency).trim()}</td>
+      <td>${totalChipHtml((it.price || 0) * it.count, it.currency)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+function copyNewStockList(){
+  const items = getNewStockItems();
+  if(items.length === 0){ showToast('No hay stock nuevo registrado'); return; }
+  const lines = items.map(it => {
+    const provider = (it.providerName || '').trim();
+    return `${it.platform}: ${it.count} und${provider ? ' (' + provider + ')' : ''}`;
+  });
+  executeCopy('🛒 Stock nuevo a comprar\n' + lines.join('\n'), '¡Lista de stock copiada! ✓');
 }
 function toggleAccountPaid(id, checked) {
   const acc = accounts.find(a => a.id === id);
@@ -1790,4 +1848,3 @@ goStep(1);
 </script>
 </body>
 </html>
-
