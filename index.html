@@ -444,6 +444,15 @@
     border-radius:7px; padding:6px 7px; font-size:13px; font-family:var(--font-mono); text-align:center;
   }
   .stock-item input:focus{outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(43,217,201,0.15);}
+  .stock-prov-row{
+    --pf-color:#2bd9c9;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:10px 12px; margin-bottom:8px; border-radius:9px; border:1px solid var(--border);
+    border-left:3px solid var(--pf-color); background:var(--panel3);
+  }
+  .stock-prov-name{font-size:13px; font-weight:700; min-width:140px;}
+  .stock-prov-row .provider-select{flex:1; min-width:180px;}
+  .stock-prov-row .payment-method-hint{margin-top:0; min-width:160px; flex:1;}
   .section-label{
     font-size:12px; font-weight:600; color:var(--brand-2); margin-bottom:10px;
     font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.04em;
@@ -625,6 +634,11 @@
   <div class="raw-label">📋 Listado crudo de cuentas</div>
   <textarea id="rawInput" placeholder="Pega aquí el listado completo de cuentas de manera libre..."></textarea>
   <div class="hint">Acepta el formato nuevo (Plataforma / PLATAFORMA / Plan / Proveedor / Correo / Clave / AAAA-MM-DD / Estado) y también el formato anterior.</div>
+  <div class="stock-tray" style="margin-top:20px; margin-bottom:0;">
+    <div class="stock-tray-title">🛒 ¿Necesitas más stock? <span class="badge badge-teal">opcional</span></div>
+    <div class="hint" style="margin-top:0;">Escribe cuántas unidades nuevas quieres comprar de cada plataforma. En el siguiente paso eliges el proveedor.</div>
+    <div class="stock-grid" id="stockTrayGrid"></div>
+  </div>
   <div class="row">
     <button class="btn-primary" onclick="organizar()">Organizar Todo</button>
   </div>
@@ -632,11 +646,11 @@
 <datalist id="providerNamesList"></datalist>
 <!-- STEP 2 -->
 <div class="card" id="step2" style="display:none;">
-  <h2>Paso 2 — Stock adicional y revisión</h2>
-  <div class="stock-tray">
-    <div class="stock-tray-title">🛒 ¿Necesitas más stock? <span class="badge badge-teal">opcional</span></div>
-    <div class="hint" style="margin-top:0;">Escribe cuántas unidades nuevas quieres comprar de cada plataforma. En el Paso 3 les pones precio y proveedor.</div>
-    <div class="stock-grid" id="stockTrayGrid"></div>
+  <h2>Paso 2 — Proveedores del stock y revisión</h2>
+  <div class="stock-tray" id="stockProvidersBox" style="display:none;">
+    <div class="stock-tray-title">🛒 Stock nuevo a comprar <span class="badge badge-teal">elige el proveedor</span></div>
+    <div class="hint" style="margin-top:0;">Escribe o elige a qué proveedor le vas a comprar cada plataforma. El método de pago se completa solo.</div>
+    <div id="stockProvidersWrap" style="margin-top:12px;"></div>
   </div>
   <div class="section-label">Cuentas filtradas de tu listado (editable)</div>
   <div id="previewTableWrap"></div>
@@ -1103,7 +1117,7 @@ function goStep(n){
     document.getElementById('step'+i).style.display = (i===n)?'block':'none';
   }
   if(n!==4) document.getElementById('paymentsCard').style.display='none';
-  if(n===2) renderStockTray();
+  if(n===2) renderStockProviders();
   setPill(n);
 }
 function stockTrayColor(name){
@@ -1124,6 +1138,41 @@ function renderStockTray(){
       <input type="number" min="0" step="1" placeholder="0" value="${c>0?c:''}" oninput="setStockTrayCount('${escapeJsStr(name)}', this.value, this)">
     </label>`;
   }).join('');
+}
+/* Fila de stock (Paso 2) → entidad de pago: YouTube usa youtubeRow, el resto su lote preestablecido. */
+function stockEntityRef(name){
+  if(name === 'YouTube') return {kind:'youtube', key:null, ent:youtubeRow};
+  const idx = customRows.findIndex(r => r.preset && r.platform === name);
+  return idx === -1 ? null : {kind:'custom', key:idx, ent:customRows[idx]};
+}
+function renderStockProviders(){
+  const box = document.getElementById('stockProvidersBox');
+  const wrap = document.getElementById('stockProvidersWrap');
+  if(!box || !wrap) return;
+  const names = STOCK_TRAY_PLATFORMS.filter(n => getStockTrayCount(n) > 0);
+  box.style.display = names.length ? 'block' : 'none';
+  wrap.innerHTML = names.map(name => {
+    const ref = stockEntityRef(name);
+    const ent = ref ? ref.ent : {};
+    return `<div class="stock-prov-row" style="--pf-color:${stockTrayColor(name)}">
+      <span class="stock-prov-name">${escapeHtml(name)} <span class="cnt" style="color:var(--teal); font-family:var(--font-mono); font-size:11px;">(${getStockTrayCount(name)} und)</span></span>
+      <input type="text" class="provider-select" list="providerNamesList" value="${escapeHtml(ent.providerName||'')}" placeholder="Proveedor a comprar..." oninput="setStockProvider('${escapeJsStr(name)}', this.value, this)">
+      <span class="payment-method-hint ${ent.paymentMethod?'':'no-match'}">${escapeHtml(ent.paymentMethod||'') || 'Sin método asignado'}</span>
+    </div>`;
+  }).join('');
+}
+function setStockProvider(name, val, el){
+  const ref = stockEntityRef(name); if(!ref) return;
+  onProviderTextInput(ref.kind, ref.key, val);
+  const hint = el.closest('.stock-prov-row').querySelector('.payment-method-hint');
+  if(hint){
+    hint.textContent = ref.ent.paymentMethod || 'Sin método asignado';
+    hint.classList.toggle('no-match', !ref.ent.paymentMethod);
+  }
+  if(ref.kind === 'youtube'){
+    const a = document.getElementById('ytProviderInput'); if(a) a.value = ref.ent.providerName || '';
+    const b = document.getElementById('ytPaymentMethodInput'); if(b) b.value = ref.ent.paymentMethod || '';
+  }
 }
 function setStockTrayCount(name, val, el){
   const n = Math.max(0, parseInt(val) || 0);
@@ -1299,6 +1348,8 @@ function goPricing(){
   renderCustomRows();
   const ytCount = document.getElementById('ytManualCount');
   if(ytCount) ytCount.value = youtubeRow.count > 0 ? youtubeRow.count : '';
+  const ytProv = document.getElementById('ytProviderInput'); if(ytProv) ytProv.value = youtubeRow.providerName || '';
+  const ytPay = document.getElementById('ytPaymentMethodInput'); if(ytPay) ytPay.value = youtubeRow.paymentMethod || '';
   goStep(3);
 }
 function renderPricingList() {
@@ -1934,9 +1985,11 @@ function reset(){
   document.getElementById('ytProviderInput').value = '';
   document.getElementById('ytPaymentMethodInput').value = '';
   document.getElementById('paymentsCard').style.display='none';
+  renderStockTray();
   goStep(1);
 }
 document.getElementById('providerNamesList').innerHTML = buildProviderDatalistOptions();
+renderStockTray();
 goStep(1);
 </script>
 </body>
