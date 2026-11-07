@@ -633,7 +633,7 @@
   </div>
   <div class="raw-label">📋 Listado crudo de cuentas</div>
   <textarea id="rawInput" placeholder="Pega aquí el listado completo de cuentas de manera libre..."></textarea>
-  <div class="hint">Acepta el formato nuevo (Plataforma / PLATAFORMA / Plan / Proveedor / Correo / Clave / AAAA-MM-DD / Estado) y también el formato anterior.</div>
+  <div class="hint">Acepta el formato nuevo (Plataforma / Plan / Proveedor / Correo / Clave / [perfiles] / [AAAA-MM-DD] / [Estado]) y también el formato anterior. Los perfiles se ignoran y los correos repetidos se cuentan una sola vez.</div>
   <div class="stock-tray" style="margin-top:20px; margin-bottom:0;">
     <div class="stock-tray-title">🛒 ¿Necesitas más stock? <span class="badge badge-teal">opcional</span></div>
     <div class="hint" style="margin-top:0;">Escribe cuántas unidades nuevas quieres comprar de cada plataforma. En el siguiente paso eliges el proveedor.</div>
@@ -790,6 +790,8 @@ const PROVIDER_PAYMENTS = {
   'Pablo': 'Thedrez61@gmail.com',
   'DAMI': '412213261',
   'Johen': '355980472',
+  'Johen 1': '355980472',
+  'Johen 2': '355980472',
   'Kurozaky correos': '38436512',
   'BLIX': 'blixprime@gmail.com',
   'CARLIN': '449422611',
@@ -836,6 +838,8 @@ const PRICING_RULES = {
   'Paramount+||Ederson': {price: 1, currency: 'USDT'},
   'Netflix||Allcheap': {price: 10, currency: 'USDT'},
   'Netflix||Johen': {price: 10, currency: 'USDT'},
+  'Netflix||Johen 1': {price: 9, currency: 'USDT'},
+  'Netflix||Johen 2': {price: 9.5, currency: 'USDT'},
   'Netflix||YPP': {price: 10.8, currency: 'USDT'},
   'Netflix||SH': {price: 10, currency: 'USDT'},
   'Netflix||DAMI': {price: 9, currency: 'USDT'},
@@ -878,6 +882,8 @@ const PROVIDER_PAYMENT_TYPES = {
   'Pablo': 'BINANCE ID',
   'DAMI': 'BINANCE ID',
   'Johen': 'BINANCE ID',
+  'Johen 1': 'BINANCE ID',
+  'Johen 2': 'BINANCE ID',
   'Kurozaky correos': 'BINANCE ID',
   'BLIX': 'BINANCE ID',
   'CARLIN': 'BINANCE ID',
@@ -1082,6 +1088,9 @@ const STATUS_RE = /d[ií]as?\s*rest|vencid/i;
 /* Líneas que son solo una observación/nota (ej: "reemplazo de correo@x.com") aunque contengan un correo,
    no deben interpretarse como el inicio de una cuenta nueva. */
 const NOTE_ONLY_RE = /reemplazo/i;
+/* Líneas de perfiles que se ignoran por completo (ej: "* 1D", "Perfil 151926562240", "Perfil 2 - NC51927879044") */
+const PROFILE_RE = /^\*\s*\d+\s*d\b|^perfil\b/i;
+function isProfileLine(line){ return PROFILE_RE.test(line || ''); }
 function isPlatformLine(line){
   return PLATFORM_PATTERNS.some(p => p.re.test(line));
 }
@@ -1216,45 +1225,53 @@ function canonicalizePlatform(text){
    2026-10-07       (fecha)
    4 DÍAS REST.     (estado)
 
-   Se detecta el formato nuevo cuando la línea 2 posiciones después del correo es una fecha. */
+   Formato anterior = la línea justo antes del correo es la plataforma. Si no, es formato nuevo.
+   En el formato nuevo la fecha y el estado son opcionales, y las líneas de perfiles
+   ("* 1D", "Perfil 1...") se ignoran. Los correos repetidos (misma plataforma) se cuentan una sola vez.
+   "JOHEN 1" y "JOHEN 2" son proveedores distintos (precios 9 y 9.5 USDT, mismo Binance ID). */
 function organizar(){
   const raw = document.getElementById('rawInput').value;
-  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  /* Las líneas de perfiles ("* 1D", "Perfil 1...") se descartan desde el inicio */
+  const lines = raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0 && !isProfileLine(l));
   accounts = [];
+  const seen = new Set(); // evita contar correos repetidos (misma plataforma + mismo correo)
   let idx = 0;
   for(let i = 0; i < lines.length; i++){
     if(!EMAIL_RE.test(lines[i]) || NOTE_ONLY_RE.test(lines[i])) continue;
     const emailText = lines[i];
     const nextLine = (i + 1) < lines.length ? lines[i+1] : '';
-    const passwordText = (nextLine && !parseDateLine(nextLine) && !EMAIL_RE.test(nextLine)) ? nextLine : '';
-    const isNewFormat = (i + 2) < lines.length && !!parseDateLine(lines[i+2]);
+    const passwordText = (nextLine && !parseDateLine(nextLine) && !EMAIL_RE.test(nextLine) && !STATUS_RE.test(nextLine)) ? nextLine : '';
     let platformName = null;
     let providerRaw = '';
     let dateInfo = null;
-    if(isNewFormat){
-      /* Proveedor = línea justo antes del correo. Plataforma = se busca hacia arriba
-         (sin pasar al bloque de la cuenta anterior). */
-      providerRaw = i > 0 ? lines[i-1] : '';
-      for(let j = i - 1; j >= Math.max(0, i - 5); j--){
+    const prevLine = i > 0 ? lines[i-1] : '';
+    if(prevLine && isPlatformLine(prevLine)){
+      /* FORMATO ANTERIOR: Plataforma / correo / clave / Proveedor / fecha */
+      platformName = canonicalizePlatform(prevLine);
+      const cand = (i + 2) < lines.length ? lines[i+2] : '';
+      if(cand && !parseDateLine(cand) && !EMAIL_RE.test(cand) && !STATUS_RE.test(cand) && !isPlatformLine(cand)) providerRaw = cand;
+    } else {
+      /* FORMATO NUEVO (con o sin fecha): Plataforma / [Plataforma] / Plan / Proveedor / correo / clave
+         Proveedor = línea justo antes del correo. Plataforma = se busca hacia arriba
+         sin pasar al bloque de la cuenta anterior. */
+      providerRaw = prevLine;
+      for(let j = i - 2; j >= Math.max(0, i - 6); j--){
         const l = lines[j];
         if(EMAIL_RE.test(l) || parseDateLine(l) || STATUS_RE.test(l)) break;
-        if(isPlatformLine(l)){
-          platformName = canonicalizePlatform(l);
-          if(j === i - 1) providerRaw = ''; // la línea anterior era la plataforma, no hay proveedor
-          break;
-        }
-      }
-      dateInfo = parseDateLine(lines[i+2]);
-    } else {
-      /* Formato anterior */
-      platformName = canonicalizePlatform(i > 0 ? lines[i-1] : '');
-      providerRaw = (i + 2) < lines.length ? lines[i+2] : '';
-      for(let j = i+3; j <= i+4 && j < lines.length; j++){
-        const d = parseDateLine(lines[j]);
-        if(d){ dateInfo = d; break; }
+        if(isPlatformLine(l)){ platformName = canonicalizePlatform(l); break; }
       }
     }
+    /* Fecha: se busca hacia abajo hasta el siguiente correo o la siguiente plataforma (opcional) */
+    for(let j = i + 2; j < lines.length && j <= i + 6; j++){
+      const l = lines[j];
+      if(EMAIL_RE.test(l) || isPlatformLine(l)) break;
+      const d = parseDateLine(l);
+      if(d){ dateInfo = d; break; }
+    }
     if(!platformName) platformName = 'Otros';
+    const dupKey = platformName.toLowerCase() + '||' + emailText.toLowerCase();
+    if(seen.has(dupKey)) continue;
+    seen.add(dupKey);
     const observation = normalizeProvider(providerRaw);
     let dueDateStr = '—';
     let days = null;
