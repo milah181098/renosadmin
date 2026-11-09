@@ -633,7 +633,7 @@
   </div>
   <div class="raw-label">📋 Listado crudo de cuentas</div>
   <textarea id="rawInput" placeholder="Pega aquí el listado completo de cuentas de manera libre..."></textarea>
-  <div class="hint">Acepta el formato nuevo (Plataforma / Plan / Proveedor / Correo / Clave / [perfiles] / [AAAA-MM-DD] / [Estado]) y también el formato anterior. Los perfiles se ignoran y los correos repetidos se cuentan una sola vez.</div>
+  <div class="hint">Acepta el formato nuevo (NETFLIX / PREMIUM 4K / ALLCHEAP / correo / clave / * perfiles / AAAA-MM-DD / 17 DÍAS REST.) y también el formato anterior. Los perfiles se ignoran y los correos repetidos se cuentan una sola vez.</div>
   <div class="stock-tray" style="margin-top:20px; margin-bottom:0;">
     <div class="stock-tray-title">🛒 ¿Necesitas más stock? <span class="badge badge-teal">opcional</span></div>
     <div class="hint" style="margin-top:0;">Escribe cuántas unidades nuevas quieres comprar de cada plataforma. En el siguiente paso eliges el proveedor.</div>
@@ -1088,8 +1088,9 @@ const STATUS_RE = /d[ií]as?\s*rest|vencid/i;
 /* Líneas que son solo una observación/nota (ej: "reemplazo de correo@x.com") aunque contengan un correo,
    no deben interpretarse como el inicio de una cuenta nueva. */
 const NOTE_ONLY_RE = /reemplazo/i;
-/* Líneas de perfiles que se ignoran por completo (ej: "* 1D", "Perfil 151926562240", "Perfil 2 - NC51927879044") */
-const PROFILE_RE = /^\*\s*\d+\s*d\b|^perfil\b/i;
+/* Líneas de perfiles que se ignoran por completo: cualquier línea que empiece con viñeta
+   ("*", "* ", "* 1D", "• Juan") o con "Perfil" (ej: "Perfil 151926562240", "Perfil 2 - NC51927879044") */
+const PROFILE_RE = /^[\*•·]|^perfil\b/i;
 function isProfileLine(line){ return PROFILE_RE.test(line || ''); }
 function isPlatformLine(line){
   return PLATFORM_PATTERNS.some(p => p.re.test(line));
@@ -1216,14 +1217,14 @@ function canonicalizePlatform(text){
 /* Lee el listado crudo. Reconoce dos formatos (las líneas vacías se ignoran):
 
    FORMATO NUEVO                    FORMATO ANTERIOR
-   Netflix          (plataforma)    Plataforma
-   NETFLIX          (plataforma)    correo@x.com
-   PREMIUM 4K       (plan)          clave
-   ALLCHEAP         (proveedor)     Proveedor
-   correo@x.com                     (fecha DD/MM/AAAA)
-   clave
-   2026-10-07       (fecha)
-   4 DÍAS REST.     (estado)
+   NETFLIX          (plataforma)    Plataforma
+   PREMIUM 4K       (plan)          correo@x.com
+   ALLCHEAP         (proveedor)     clave
+   correo@x.com                     Proveedor
+   clave                            (fecha DD/MM/AAAA)
+   *  (perfiles, se ignoran — pueden venir vacíos)
+   2026-11-26       (fecha)
+   17 DÍAS REST.    (estado)
 
    Formato anterior = la línea justo antes del correo es la plataforma. Si no, es formato nuevo.
    En el formato nuevo la fecha y el estado son opcionales, y las líneas de perfiles
@@ -1262,7 +1263,7 @@ function organizar(){
       }
     }
     /* Fecha: se busca hacia abajo hasta el siguiente correo o la siguiente plataforma (opcional) */
-    for(let j = i + 2; j < lines.length && j <= i + 6; j++){
+    for(let j = i + 2; j < lines.length && j <= i + 12; j++){
       const l = lines[j];
       if(EMAIL_RE.test(l) || isPlatformLine(l)) break;
       const d = parseDateLine(l);
